@@ -26,18 +26,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} dark h-full scroll-smooth`}
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${jetbrainsMono.variable} dark h-full`}
     >
       <body className="font-sans bg-[#090b11] text-slate-200 min-h-screen h-full w-full relative overflow-x-hidden antialiased">
         {/* Persistent Ambient Background Glows */}
         <div className="pointer-events-none absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-slate-800/10 blur-[150px]" />
         <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-[600px] w-[600px] rounded-full bg-indigo-950/10 blur-[150px]" />
 
-        {/* Outer Layout wrapper to enforce dynamic centering bounds */}
+        {/* Outer Layout wrapper */}
         <div className="relative flex flex-col min-h-screen w-full">
-          <main className="flex-1 flex w-full items-center justify-center p-4 sm:p-8">
-            {children}
-          </main>
+          {children}
         </div>
       </body>
     </html>

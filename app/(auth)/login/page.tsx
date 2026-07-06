@@ -1,3 +1,4 @@
+"use client";
 import AuthCard from "@/features/auth/components/AuthCard";
 
 export default function LoginPage() {
@@ -11,7 +12,7 @@ export default function LoginPage() {
       <div className="absolute top-8 left-8 w-12 h-12 border-t border-l border-slate-800/60" />
       <div className="absolute bottom-8 right-8 w-12 h-12 border-b border-r border-slate-800/60" />
 
-      <div className="z-10 w-full max-w-[500px] px-4">
+      <div className="z-10 w-full max-w-md px-4">
         {/* Header Branding */}
         <div className="mb-6 text-center space-y-1">
           <h1 className="text-3xl font-bold tracking-widest uppercase text-slate-200 font-mono">

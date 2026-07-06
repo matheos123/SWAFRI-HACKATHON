@@ -1,0 +1,141 @@
+import { PlayerProfile, Badge, Match, LeaderboardEntry } from '@/shared/types';
+
+export const initialProfile: PlayerProfile = {
+  username: "Archer:07",
+  rank: "Diamond Rank III",
+  title: "Global Elite",
+  level: 42,
+  reputation: 984,
+  reputationMax: 1000,
+  totalMatches: 1248,
+  wins: 842,
+  losses: 406,
+  winRate: 67.4,
+  walletConnected: true,
+  walletAddress: "0x71C4...B29a",
+  balanceRPS: 245.80,
+  verified: true,
+  avatarUrl: "/src/assets/images/cyber_commander_avatar_1783334547047.jpg"
+};
+
+export const initialBadges: Badge[] = [
+  {
+    id: "badge-1",
+    name: "Water Mastery",
+    tier: "Rare",
+    description: "Granted to fighters who demonstrate incredible defensive adaptability. Unlocks a 1.2x RP multiplier in sub-zero arenas.",
+    unlocked: true,
+    iconType: "water",
+    rarityColor: "from-blue-500/30 to-blue-600/10 border-blue-500/50 text-blue-400",
+    onChainId: "0x442f...e761"
+  },
+  {
+    id: "badge-2",
+    name: "Fire Storm",
+    tier: "Legendary",
+    description: "Granted to fighters who achieve a 7+ win streak. Unlocks custom aggressive animation effects and +10% Matchmaking priorities.",
+    unlocked: true,
+    iconType: "fire",
+    rarityColor: "from-orange-500/30 to-orange-600/10 border-orange-500/50 text-orange-400",
+    onChainId: "0xfa12...99bc"
+  },
+  {
+    id: "badge-3",
+    name: "Gold Arena King",
+    tier: "Artifact",
+    description: "Awarded to champions who conquer the Gold Arena Championship. Unlocks a legendary crown badge and exclusive $RPS staking pools.",
+    unlocked: true,
+    iconType: "gold",
+    rarityColor: "from-yellow-500/30 to-yellow-600/10 border-yellow-500/50 text-yellow-400",
+    onChainId: "0xb01d...ca23"
+  },
+  {
+    id: "badge-4",
+    name: "Wind Walker",
+    tier: "Rare",
+    description: "Complete 100 evasive counter-attacks. Unlocks +5% evasion rating inside sandstorm environments.",
+    unlocked: false,
+    iconType: "wind",
+    rarityColor: "from-teal-500/30 to-teal-600/10 border-teal-500/50 text-teal-400",
+    onChainId: "0x71e8...d901"
+  },
+  {
+    id: "badge-5",
+    name: "Earth Shatterer",
+    tier: "Legendary",
+    description: "Accumulate 10,000 total damage points. Unlocks standard earthquake visual modifiers and ground rumble audio triggers.",
+    unlocked: false,
+    iconType: "earth",
+    rarityColor: "from-purple-500/30 to-purple-600/10 border-purple-500/50 text-purple-400",
+    onChainId: "0x2e04...992c"
+  }
+];
+
+export const initialMatches: Match[] = [
+  {
+    id: "match-1",
+    status: "VICTORY",
+    opponent: "CyberStriker_99",
+    opponentLevel: 39,
+    score: "3 - 1",
+    rewardRP: 24,
+    rewardRPS: 12,
+    txId: "0x4a8b...9f2d",
+    timestamp: "2 mins ago"
+  },
+  {
+    id: "match-2",
+    status: "DEFEAT",
+    opponent: "Nova_Rift",
+    opponentLevel: 45,
+    score: "2 - 3",
+    rewardRP: -18,
+    rewardRPS: 0,
+    txId: "0x7c9d...1b4a",
+    timestamp: "2 hours ago"
+  },
+  {
+    id: "match-3",
+    status: "VICTORY",
+    opponent: "Iron_Will",
+    opponentLevel: 41,
+    score: "3 - 0",
+    rewardRP: 28,
+    rewardRPS: 15,
+    txId: "0x2e5f...55c1",
+    timestamp: "1 day ago"
+  },
+  {
+    id: "match-4",
+    status: "VICTORY",
+    opponent: "AlphaMech_7",
+    opponentLevel: 43,
+    score: "3 - 2",
+    rewardRP: 22,
+    rewardRPS: 10,
+    txId: "0x9d4e...bb72",
+    timestamp: "3 days ago"
+  },
+  {
+    id: "match-5",
+    status: "DEFEAT",
+    opponent: "ShadowByte",
+    opponentLevel: 44,
+    score: "1 - 3",
+    rewardRP: -15,
+    rewardRPS: 0,
+    txId: "0xf88c...aa11",
+    timestamp: "5 days ago"
+  }
+];
+
+export const leaderboardData: LeaderboardEntry[] = [
+  { rank: 1, username: "Satoshi_Shogun", level: 50, score: 3200, winRate: "78.2%", status: "online", badgeType: "gold" },
+  { rank: 2, username: "EtherNinja", level: 48, score: 3050, winRate: "72.4%", status: "ingame", badgeType: "silver" },
+  { rank: 3, username: "CryptoKombat", level: 49, score: 2980, winRate: "70.9%", status: "online", badgeType: "bronze" },
+  { rank: 4, username: "Archer:07", level: 42, score: 2842, winRate: "67.4%", status: "online", badgeType: "none" },
+  { rank: 5, username: "CyberStriker_99", level: 39, score: 2650, winRate: "61.2%", status: "ingame", badgeType: "none" },
+  { rank: 6, username: "Nova_Rift", level: 45, score: 2600, winRate: "59.8%", status: "offline", badgeType: "none" },
+  { rank: 7, username: "Iron_Will", level: 41, score: 2420, winRate: "58.1%", status: "online", badgeType: "none" },
+  { rank: 8, username: "DeFi_Warlord", level: 38, score: 2350, winRate: "56.4%", status: "offline", badgeType: "none" }
+];

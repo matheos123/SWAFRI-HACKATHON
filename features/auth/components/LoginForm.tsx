@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormData } from "@/shared/schemas";
-
+import { useRouter } from "next/navigation";
 export default function LoginForm() {
   const {
     register,
@@ -12,9 +12,10 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
+  const router = useRouter();
   const onSubmit = (data: LoginFormData) => {
     console.log("Form data:", data);
+    router.push('/lobby')
     // Traditional login logic goes here
   };
 
@@ -75,6 +76,7 @@ export default function LoginForm() {
       {/* Action Submit Button */}
       <div className="pt-2">
         <button
+        
           type="submit"
           className="w-full rounded-md bg-gradient-to-r from-blue-300 via-indigo-300 to-blue-300 py-3 text-xs font-bold tracking-widest text-[#090b11] uppercase shadow-[0_0_15px_rgba(165,180,252,0.4)] hover:shadow-[0_0_25px_rgba(165,180,252,0.6)] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
         >
