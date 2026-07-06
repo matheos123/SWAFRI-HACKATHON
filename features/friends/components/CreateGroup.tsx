@@ -1,3 +1,4 @@
+"use client"
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Shield, Lock, Globe, Camera, ArrowRight, Upload } from 'lucide-react';

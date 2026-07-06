@@ -1,4 +1,4 @@
-export type Tab = 'lobby' | 'leaderboard' | 'profile' | 'settings';
+export type Tab = "lobby" | "leaderboard" | "profile" | "settings";
 
 export interface PlayerProfile {
   username: string;
@@ -21,17 +21,17 @@ export interface PlayerProfile {
 export interface Badge {
   id: string;
   name: string;
-  tier: 'Rare' | 'Legendary' | 'Artifact' | 'Common';
+  tier: "Rare" | "Legendary" | "Artifact" | "Common";
   description: string;
   unlocked: boolean;
-  iconType: 'water' | 'fire' | 'gold' | 'wind' | 'earth';
+  iconType: "water" | "fire" | "gold" | "wind" | "earth";
   rarityColor: string;
   onChainId: string;
 }
 
 export interface Match {
   id: string;
-  status: 'VICTORY' | 'DEFEAT';
+  status: "VICTORY" | "DEFEAT";
   opponent: string;
   opponentLevel: number;
   score: string;
@@ -47,6 +47,42 @@ export interface LeaderboardEntry {
   level: number;
   score: number;
   winRate: string;
-  status: 'online' | 'offline' | 'ingame';
-  badgeType: 'gold' | 'silver' | 'bronze' | 'none';
+  status: "online" | "offline" | "ingame";
+  badgeType: "gold" | "silver" | "bronze" | "none";
+}
+
+export interface Squad {
+  name: string;
+  membersCount: number;
+  maxMembers: number;
+  status: string;
+  privacy: "Public" | "Encrypted" | "Cloaked";
+  winRate: string;
+  winRateTrend: string;
+  totalOnChainWins: number;
+  globalStanding: string;
+  insigniaUrl?: string;
+}
+
+export interface SquadMember {
+  id: string;
+  username: string;
+  verified: boolean;
+  ping: string | null;
+  statusText?: string;
+  status: "online" | "offline" | "ingame";
+  rank: string;
+  role: "LEADER" | "OPERATIVE";
+  micMuted: boolean;
+  avatarUrl?: string;
+}
+
+export interface InviteSquad {
+  id: string;
+  username: string;
+  level: number;
+  status: "IN_LOBBY" | "READY" | "OFFLINE" | "MATCH_PENDING";
+  avatarUrl: string;
+  isOnline: boolean;
+  invited?: boolean;
 }

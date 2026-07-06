@@ -28,7 +28,7 @@ export default function Navbar({
       <div className="w-full flex items-center justify-between gap-4">
         {/* Left Side: Brand Logo */}
         <div
-          onClick={() => router.push("/lobby/profile")}
+          onClick={() => router.push("/profile")}
           className="flex items-center gap-2 cursor-pointer group"
         >
           <div className="relative w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
@@ -85,9 +85,9 @@ export default function Navbar({
             </button>
 
             <button
-              onClick={() => router.push("/lobby/settings")}
+              onClick={() => router.push("/settings")}
               className={`p-2 rounded-lg transition-colors ${
-                pathname === "/lobby/settings"
+                pathname === "/settings"
                   ? "text-cyan-400 bg-[#141C2F]/50"
                   : "text-gray-400 hover:text-white hover:bg-gray-800/50"
               }`}

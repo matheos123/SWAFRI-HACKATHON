@@ -32,20 +32,8 @@ export default function ProfileView({
   onOpenWallet,
 }: ProfileViewProps) {
   const [historyFilter, setHistoryFilter] = useState<"ALL" | "RANKED">("ALL");
-  const [showAllAchievements, setShowAllAchievements] = useState(false);
   const [visibleHistoryCount, setVisibleHistoryCount] = useState(3);
 
-  // Performance Growth chart metrics (matching visual bars from mockup)
-  const chartBars = [
-    { label: "Wk 1", value: 30 },
-    { label: "Wk 2", value: 55 },
-    { label: "Wk 3", value: 40 },
-    { label: "Wk 4", value: 75 },
-    { label: "Wk 5", value: 90 },
-    { label: "Wk 6", value: 50 },
-    { label: "Wk 7", value: 70 },
-    { label: "Wk 8", value: 85 },
-  ];
 
   // Filter history
   const filteredMatches = matches; // All mock matches are tournament-ranked anyway
@@ -59,19 +47,6 @@ export default function ProfileView({
     }
   };
 
-  // Helper to render badge icons inside the hexagon
-  const renderBadgeIcon = (type: string) => {
-    switch (type) {
-      case "water":
-        return <Droplet className="w-5 h-5 text-blue-400" />;
-      case "fire":
-        return <Flame className="w-5 h-5 text-orange-400" />;
-      case "gold":
-        return <Crown className="w-5 h-5 text-yellow-400" />;
-      default:
-        return <Zap className="w-5 h-5 text-purple-400" />;
-    }
-  };
 
   return (
     <div id="profile-container" className="space-y-6">

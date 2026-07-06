@@ -1,4 +1,4 @@
-import { PlayerProfile, Badge, Match, LeaderboardEntry } from '@/shared/types';
+import { PlayerProfile, Badge, Match, LeaderboardEntry, SquadMember, InviteSquad } from '@/shared/types';
 
 export const initialProfile: PlayerProfile = {
   username: "Archer:07",
@@ -138,4 +138,108 @@ export const leaderboardData: LeaderboardEntry[] = [
   { rank: 6, username: "Nova_Rift", level: 45, score: 2600, winRate: "59.8%", status: "offline", badgeType: "none" },
   { rank: 7, username: "Iron_Will", level: 41, score: 2420, winRate: "58.1%", status: "online", badgeType: "none" },
   { rank: 8, username: "DeFi_Warlord", level: 38, score: 2350, winRate: "56.4%", status: "offline", badgeType: "none" }
+];
+
+
+export const initialSquad = {
+  name: "PHANTOM_UNIT_09",
+  membersCount: 4,
+  maxMembers: 10,
+  status: "Operational Status: Optimal",
+  privacy: "Public" as const,
+  winRate: "76.4%",
+  winRateTrend: "↑ 4.2%",
+  totalOnChainWins: 1402,
+  globalStanding: "#241",
+  insigniaUrl: "🛡️",
+};
+
+export const initialSquadMembers: SquadMember[] = [
+  {
+    id: "m-1",
+    username: "COMMANDER_ZERO",
+    verified: true,
+    ping: null,
+    statusText: "ON-CHAIN VERIFIED",
+    status: "online",
+    rank: "LEGENDARY",
+    role: "LEADER",
+    micMuted: false,
+  },
+  {
+    id: "m-2",
+    username: "VOID_WALKER",
+    verified: false,
+    ping: "24MS",
+    statusText: "PING: 24MS",
+    status: "online",
+    rank: "ELITE",
+    role: "OPERATIVE",
+    micMuted: true,
+  },
+  {
+    id: "m-3",
+    username: "NEON_VALKYRIE",
+    verified: false,
+    ping: null,
+    statusText: "IN COMBAT",
+    status: "ingame",
+    rank: "ACE",
+    role: "OPERATIVE",
+    micMuted: true,
+  },
+  {
+    id: "m-4",
+    username: "IRON_GIANT_9",
+    verified: false,
+    ping: null,
+    statusText: "COMMUNICATIONS OFFLINE",
+    status: "offline",
+    rank: "VETERAN",
+    role: "OPERATIVE",
+    micMuted: false,
+  },
+];
+
+export const initialRecruitCandidates: InviteSquad[] = [
+  {
+    id: "rc-1",
+    username: "VALKYRIE_09",
+    level: 42,
+    status: "IN_LOBBY",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150",
+    isOnline: true,
+    invited: false,
+  },
+  {
+    id: "rc-2",
+    username: "CYBER_GHOST",
+    level: 88,
+    status: "READY",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150",
+    isOnline: true,
+    invited: false,
+  },
+  {
+    id: "rc-3",
+    username: "NOMAD_K9",
+    level: 0,
+    status: "OFFLINE",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150",
+    isOnline: false,
+    invited: false,
+  },
+  {
+    id: "rc-4",
+    username: "MEDIC_ONE",
+    level: 12,
+    status: "MATCH_PENDING",
+    avatarUrl:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+    isOnline: true,
+    invited: false,
+  },
 ];

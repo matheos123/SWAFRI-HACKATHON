@@ -9,9 +9,10 @@ import {
   Menu,
   PersonStanding,
   X,
+  Users,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { PlayerProfile } from "../types";
+import { PlayerProfile, Tab } from "../types";
 
 interface SidebarProps {
   profile: PlayerProfile;
@@ -31,9 +32,10 @@ export default function Sidebar({
 
   const menuItems = [
     { path: "/lobby", label: "Battle Lobby", icon: Sword },
-    { path: "/lobby/leaderboard", label: "Leaderboard", icon: Trophy },
-    { path: "/lobby/profile", label: "Profile", icon: PersonStanding },
-    { path: "/lobby/settings", label: "Settings", icon: Settings },
+    { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { path: "/friends", label: "Squad Command", icon: Users },
+    { path: "/profile", label: "Profile", icon: PersonStanding },
+    { path: "/settings", label: "Settings", icon: Settings },
   ];
 
   const handleTabClick = (path: string) => {

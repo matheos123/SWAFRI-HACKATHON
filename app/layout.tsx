@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { AppStateProvider } from "@/shared/context/AppStateContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -36,7 +37,7 @@ export default function RootLayout({
 
         {/* Outer Layout wrapper */}
         <div className="relative flex flex-col min-h-screen w-full">
-          {children}
+          <AppStateProvider>{children}</AppStateProvider>
         </div>
       </body>
     </html>

@@ -4,12 +4,7 @@ import Navbar from "@/shared/components/Navbar";
 import Sidebar from "@/shared/components/Sidebar";
 import TxModal from "@/shared/components/TXModal";
 import WalletModal from "@/shared/components/WalletModal";
-import {
-  AppStateProvider,
-  useAppState,
-} from "@/shared/context/AppStateContext";
-
-// ─── Inner shell (consumes context) ──────────────────────────────────────────
+import { useAppState } from "@/shared/context/AppStateContext";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const {
@@ -33,7 +28,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       id="rps-arena-root"
       className="min-h-screen bg-[#070A13] text-[#F3F4F6] flex flex-col overflow-x-hidden antialiased"
     >
-      {/* Top navigation bar */}
       <Navbar
         profile={profile}
         onOpenWallet={() => setIsWalletModalOpen(true)}
@@ -42,7 +36,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         isQueueActive={isQueueActive}
       />
 
-      {/* Sidebar + content */}
       <div className="flex flex-1 w-full">
         <Sidebar
           profile={profile}
@@ -50,11 +43,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           setIsOpenMobile={setMobileSidebarOpen}
           onLogout={handleLogout}
         />
-
         <main className="flex-1 p-4 sm:p-8 overflow-y-auto">{children}</main>
       </div>
 
-      {/* Footer */}
       <footer className="border-t border-[#141C2F]/80 bg-[#050810] py-6 px-4 sm:px-8 text-xs text-gray-500">
         <div className="mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-center sm:text-left">
@@ -98,7 +89,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
 
-      {/* Modals */}
       <WalletModal
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
@@ -107,25 +97,17 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <TxModal
         isOpen={isTxModalOpen}
         match={selectedTxMatch}
-        onClose={() => {
-          setIsTxModalOpen(false);
-        }}
+        onClose={() => setIsTxModalOpen(false)}
         walletAddress={profile.walletAddress || "0x0000...0000"}
       />
     </div>
   );
 }
 
-// ─── Layout (wraps everything in the provider) ────────────────────────────────
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AppStateProvider>
-      <DashboardShell>{children}</DashboardShell>
-    </AppStateProvider>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }
