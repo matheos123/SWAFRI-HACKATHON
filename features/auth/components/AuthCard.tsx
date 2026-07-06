@@ -24,7 +24,7 @@ export default function AuthCard() {
       <div className="mt-8 text-center text-xs text-slate-400">
         New combatant?{" "}
         <a
-          href="#"
+          href="/register"
           className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-4 decoration-indigo-500/40"
         >
           Register for Service
