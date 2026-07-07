@@ -60,3 +60,7 @@ dist/
 # Misc
 *.pem
 *.key
+
+# Next.js build and cache outputs
+.next/
+out/
