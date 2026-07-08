@@ -24,7 +24,7 @@ export default function LoginForm() {
       {/* Email Input */}
       <div className="space-y-1.5">
         <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-          Operator Identity
+          Your Email
         </label>
         <div className="relative">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
@@ -46,7 +46,7 @@ export default function LoginForm() {
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-            Access Key
+            Password
           </label>
         </div>
         <div className="relative">
@@ -68,7 +68,7 @@ export default function LoginForm() {
             href="#"
             className="text-[11px] text-slate-400 hover:text-indigo-400 transition-colors"
           >
-            Forgot Access Key?
+            Forgot Password Key?
           </a>
         </div>
       </div>

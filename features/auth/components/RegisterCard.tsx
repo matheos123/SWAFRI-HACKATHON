@@ -41,7 +41,7 @@ export default function RegisterCard() {
         {/* Operator Name Field */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-            Operator Name
+             Name
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
@@ -63,7 +63,7 @@ export default function RegisterCard() {
         {/* Neural Link Email Field */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-            Neural Link Email
+            Link Email
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
@@ -87,7 +87,7 @@ export default function RegisterCard() {
           {/* Access Key */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-              Access Key
+              Your Password
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">
@@ -109,7 +109,7 @@ export default function RegisterCard() {
           {/* Verify Key */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-              Verify Key
+             Confirm Password
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">
@@ -134,7 +134,7 @@ export default function RegisterCard() {
           type="submit"
           className="mt-4 w-full rounded-md bg-[#b4c6ff] py-3 text-xs font-bold tracking-widest text-[#090b11] uppercase shadow-lg shadow-indigo-400/20 hover:bg-[#c5d5ff] active:scale-[0.99] transition-all"
         >
-          Initialize Deployment
+          Initialize Register
         </button>
       </form>
 
