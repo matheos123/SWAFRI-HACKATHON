@@ -64,3 +64,9 @@ dist/
 # Next.js build and cache outputs
 .next/
 out/
+
+# Test coverage
+coverage/
+
+# OS
+Thumbs.db
