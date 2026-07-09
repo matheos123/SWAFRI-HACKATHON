@@ -1,19 +1,18 @@
 "use client";
 import SettingsView from "@/features/settings/SettingsView";
 import { useAppState } from "@/shared/context/AppStateContext";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 export default function SettingsPage() {
-  const {
-    profile,
-    handleUpdateProfileNameAndTitle,
-    handleDisconnectWallet,
-    setIsWalletModalOpen,
-  } = useAppState();
+  const { setIsWalletModalOpen, handleDisconnectWallet } = useAppState();
+  const { user } = useAuthStore();
+
+  if (!user) return null;
 
   return (
     <SettingsView
-      profile={profile}
-      onUpdateProfileNameAndTitle={handleUpdateProfileNameAndTitle}
+      profile={user}
+      onUpdateProfileNameAndTitle={() => {}}
       onDisconnectWallet={handleDisconnectWallet}
       onOpenWallet={() => setIsWalletModalOpen(true)}
     />

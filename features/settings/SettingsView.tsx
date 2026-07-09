@@ -1,5 +1,5 @@
-"use client"
-import { useState , FormEvent} from "react";
+"use client";
+import { useState, FormEvent } from "react";
 import {
   User,
   Volume2,
@@ -10,10 +10,10 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { PlayerProfile } from "@/shared/types";
+import { AuthUser } from "@/features/auth/api/auth.api";
 
 interface SettingsViewProps {
-  profile: PlayerProfile;
+  profile: AuthUser;
   onUpdateProfileNameAndTitle: (name: string, title: string) => void;
   onDisconnectWallet: () => void;
   onOpenWallet: () => void;
@@ -35,7 +35,7 @@ export default function SettingsView({
   onOpenWallet,
 }: SettingsViewProps) {
   const [username, setUsername] = useState(profile.username);
-  const [selectedTitle, setSelectedTitle] = useState(profile.title);
+  const [selectedTitle, setSelectedTitle] = useState("");
 
   // Custom interface preferences
   const [enableSound, setEnableSound] = useState(true);
@@ -140,7 +140,7 @@ export default function SettingsView({
           </div>
 
           <div className="space-y-4 text-xs">
-            {profile.walletConnected ? (
+            {profile.walletAddress ? (
               <div className="space-y-3">
                 <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-cyan-200">
                   <div className="flex justify-between items-center mb-1">
@@ -150,14 +150,14 @@ export default function SettingsView({
                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   </div>
                   <span className="font-mono tracking-wider break-all text-[11px] block">
-                    {profile.walletAddress || "0x71C4...B29a"}
+                    {profile.walletAddress}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center text-[11px] border-b border-gray-900 pb-2.5">
-                  <span className="text-gray-400">Total $RPS Balance</span>
+                  <span className="text-gray-400">Points</span>
                   <span className="text-white font-bold font-mono">
-                    {profile.balanceRPS.toFixed(2)} $RPS
+                    {profile.points.toLocaleString()} PTS
                   </span>
                 </div>
 
