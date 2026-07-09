@@ -2,24 +2,32 @@
 import { Bell, Settings, Wallet, Shield } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthUser } from "@/features/auth/api/auth.api";
+import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
 
 interface NavbarProps {
   user: AuthUser;
   onOpenWallet: () => void;
   onDisconnectWallet: () => void;
-  onTriggerFindMatch: () => void;
-  isQueueActive: boolean;
 }
 
 export default function Navbar({
   user,
   onOpenWallet,
   onDisconnectWallet,
-  onTriggerFindMatch,
-  isQueueActive,
 }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isQueued, matchmakingStatus, joinQueue, cancelQueue } =
+    useMatchmaking();
+
+  const handleFindMatch = () => {
+    if (isQueued) {
+      cancelQueue();
+    } else {
+      joinQueue();
+      router.push("/lobby");
+    }
+  };
 
   return (
     <nav
@@ -43,20 +51,22 @@ export default function Navbar({
 
         {/* Right actions */}
         <div className="flex items-center gap-3.5">
-          {/* Find Match */}
+          {/* Find Match / Cancel Queue */}
           <button
-            onClick={() => {
-              onTriggerFindMatch();
-              router.push("/lobby");
-            }}
-            disabled={isQueueActive}
+            onClick={handleFindMatch}
             className={`h-10 px-6 rounded-lg text-xs font-bold font-sans tracking-widest uppercase transition-all duration-300 select-none ${
-              isQueueActive
-                ? "bg-amber-600/30 border border-amber-500/30 text-amber-200 animate-pulse cursor-not-allowed"
-                : "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] cursor-pointer"
+              isQueued
+                ? "bg-amber-600/30 border border-amber-500/30 text-amber-200 animate-pulse cursor-pointer"
+                : matchmakingStatus === "matched"
+                  ? "bg-emerald-600/30 border border-emerald-500/30 text-emerald-200 cursor-pointer"
+                  : "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] cursor-pointer"
             }`}
           >
-            {isQueueActive ? "In Queue..." : "Find Match"}
+            {isQueued
+              ? "In Queue... (Cancel)"
+              : matchmakingStatus === "matched"
+                ? "Match Found!"
+                : "Find Match"}
           </button>
 
           {/* Points balance */}
@@ -85,11 +95,7 @@ export default function Navbar({
           {/* Icons */}
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() =>
-                alert(
-                  "No new notifications on-chain. Subscribe to smart contract alerts!",
-                )
-              }
+              onClick={() => alert("No new notifications.")}
               className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
             >
               <Bell className="w-5 h-5" />

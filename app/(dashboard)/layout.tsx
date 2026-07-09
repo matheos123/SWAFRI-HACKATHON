@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/shared/components/Navbar";
 import Sidebar from "@/shared/components/Sidebar";
@@ -8,10 +7,12 @@ import TxModal from "@/shared/components/TXModal";
 import WalletModal from "@/shared/components/WalletModal";
 import { useAppState } from "@/shared/context/AppStateContext";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useSocket } from "@/shared/hooks/useSocket";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loadProfile } = useAuthStore();
+  useSocket(); // connect socket and register global listeners
 
   // Sync fresh profile from server on mount (cookie handles auth automatically)
   useEffect(() => {
@@ -58,8 +59,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         user={user}
         onOpenWallet={() => setIsWalletModalOpen(true)}
         onDisconnectWallet={handleDisconnectWallet}
-        onTriggerFindMatch={handleTriggerFindMatch}
-        isQueueActive={isQueueActive}
       />
 
       <div className="flex flex-1 w-full">

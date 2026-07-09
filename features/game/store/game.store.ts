@@ -1,0 +1,128 @@
+import { create } from "zustand";
+
+export type Move = "rock" | "paper" | "scissors";
+export type GamePhase =
+  | "waiting" // waiting for opponent to move
+  | "selecting" // player choosing move
+  | "reveal" // showing round result
+  | "finished"; // match over
+
+export interface RoundResult {
+  roundNumber: number;
+  player1Move: Move;
+  player2Move: Move;
+  roundWinnerId: string | null; // null = draw
+  player1Wins: number;
+  player2Wins: number;
+}
+
+export interface MatchResult {
+  winnerId: string | null;
+  player1Wins: number;
+  player2Wins: number;
+  matchId: string;
+  onChainHash: string | null;
+  isRanked: boolean;
+}
+
+interface GameState {
+  roomId: string | null;
+  matchId: string | null;
+  isRanked: boolean;
+  opponent: { userId: string; username: string } | null;
+
+  phase: GamePhase;
+  currentRound: number;
+  myMove: Move | null;
+  opponentMoved: boolean;
+  roundResult: RoundResult | null;
+  matchResult: MatchResult | null;
+
+  myWins: number;
+  opponentWins: number;
+
+  // Actions
+  initGame: (data: {
+    roomId: string;
+    matchId: string;
+    isRanked: boolean;
+    opponent: { userId: string; username: string };
+  }) => void;
+  setMyMove: (move: Move) => void;
+  setOpponentMoved: () => void;
+  setRoundResult: (result: RoundResult) => void;
+  nextRound: (roundNumber: number) => void;
+  setMatchResult: (result: MatchResult) => void;
+  resetGame: () => void;
+}
+
+export const useGameStore = create<GameState>((set) => ({
+  roomId: null,
+  matchId: null,
+  isRanked: false,
+  opponent: null,
+
+  phase: "selecting",
+  currentRound: 1,
+  myMove: null,
+  opponentMoved: false,
+  roundResult: null,
+  matchResult: null,
+
+  myWins: 0,
+  opponentWins: 0,
+
+  initGame: (data) =>
+    set({
+      roomId: data.roomId,
+      matchId: data.matchId,
+      isRanked: data.isRanked,
+      opponent: data.opponent,
+      phase: "selecting",
+      currentRound: 1,
+      myMove: null,
+      opponentMoved: false,
+      roundResult: null,
+      matchResult: null,
+      myWins: 0,
+      opponentWins: 0,
+    }),
+
+  setMyMove: (move) => set({ myMove: move, phase: "waiting" }),
+  setOpponentMoved: () => set({ opponentMoved: true }),
+
+  setRoundResult: (result) =>
+    set({
+      roundResult: result,
+      phase: "reveal",
+      myWins: result.player1Wins, // will be corrected in useGameSocket based on userId
+      opponentWins: result.player2Wins,
+    }),
+
+  nextRound: (roundNumber) =>
+    set({
+      currentRound: roundNumber,
+      phase: "selecting",
+      myMove: null,
+      opponentMoved: false,
+      roundResult: null,
+    }),
+
+  setMatchResult: (result) => set({ matchResult: result, phase: "finished" }),
+
+  resetGame: () =>
+    set({
+      roomId: null,
+      matchId: null,
+      isRanked: false,
+      opponent: null,
+      phase: "selecting",
+      currentRound: 1,
+      myMove: null,
+      opponentMoved: false,
+      roundResult: null,
+      matchResult: null,
+      myWins: 0,
+      opponentWins: 0,
+    }),
+}));
