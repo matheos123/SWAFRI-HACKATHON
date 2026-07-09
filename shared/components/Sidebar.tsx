@@ -10,6 +10,7 @@ import {
   PersonStanding,
   X,
   Users,
+  ShieldAlert,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthUser } from "@/features/auth/api/auth.api";
@@ -36,6 +37,10 @@ export default function Sidebar({
     { path: "/friends", label: "Squad Command", icon: Users },
     { path: "/profile", label: "Profile", icon: PersonStanding },
     { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/admin", label: "Admin Panel", icon: ShieldAlert }
+    // ...(user.role === "ADMIN"
+    //   ? [{ path: "/admin", label: "Admin Panel", icon: ShieldAlert }]
+    //   : []),
   ];
 
   const handleTabClick = (path: string) => {

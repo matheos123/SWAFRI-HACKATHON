@@ -1,83 +1,97 @@
+"use client";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Wallet, ShieldAlert, Award, ArrowUpRight } from "lucide-react";
+import { X, Wallet, ShieldAlert, CheckCircle, Loader2 } from "lucide-react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
+import { useSiweAuth } from "@/features/auth/hooks/useSiweAuth";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConnect: (address: string) => void;
+  onConnect?: (address: string) => void;
 }
 
-const WALLET_PROVIDERS = [
-  {
-    name: "MetaMask",
-    icon: "🦊",
-    description: "Connect to your MetaMask web browser extension",
-    isInstalled: true,
-  },
-  {
-    name: "Phantom",
-    icon: "👻",
-    description: "The Solana & Ethereum multichain friendly portal",
-    isInstalled: true,
-  },
-  {
-    name: "Coinbase Wallet",
-    icon: "🔵",
-    description: "Access your centralized Coinbase Web3 assets",
-    isInstalled: false,
-  },
-  {
-    name: "WalletConnect",
-    icon: "🔗",
-    description: "Scan QR code with your mobile crypto application",
-    isInstalled: true,
-  },
-];
+export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
+  const { address, isConnected } = useAccount();
+  const { isConnecting, error, verifyAndLink, clearError } = useSiweAuth();
+  const user = useAuthStore((s) => s.user);
 
-export default function WalletModal({
-  isOpen,
-  onClose,
-  onConnect,
-}: WalletModalProps) {
-  const handleSelectProvider = (providerName: string) => {
-    // Generate a cool mock ethereum address
-    const randomHex =
-      Math.random().toString(16).substring(2, 6) +
-      "..." +
-      Math.random().toString(16).substring(2, 6);
-    const mockAddress = `0x${randomHex.toUpperCase()}`;
-
-    // Trigger simulated connection flow
-    setTimeout(() => {
-      onConnect(mockAddress);
-      onClose();
-    }, 800);
+  const handleClose = () => {
+    clearError();
+    onClose();
   };
+
+  const handleVerify = async () => {
+    await verifyAndLink();
+    // If wallet is now linked, close modal
+    const updated = useAuthStore.getState().user;
+    if (updated?.walletAddress) {
+      onClose();
+    }
+  };
+
+  // Already connected on backend — just close
+  if (user?.walletAddress) {
+    return (
+      <AnimatePresence>
+        {isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClose}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md rounded-2xl border border-cyan-500/30 bg-[#0E131F]/95 p-6 shadow-2xl text-center"
+            >
+              <CheckCircle className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
+              <h3 className="text-white font-bold font-sans tracking-wide uppercase mb-1">
+                Wallet Connected
+              </h3>
+              <p className="text-xs text-gray-400 font-mono">
+                {user.walletAddress.slice(0, 6)}...
+                {user.walletAddress.slice(-4)}
+              </p>
+              <button
+                onClick={handleClose}
+                className="mt-5 w-full py-2.5 rounded-xl border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase hover:bg-cyan-500/10 transition-colors"
+              >
+                Close
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div
-          id="wallet-modal-overlay"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
 
-          {/* Modal Container */}
+          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative w-full max-w-md overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#0E131F]/95 p-6 shadow-2xl shadow-cyan-500/10"
           >
-            {/* Corner Decorative Tech Accents */}
+            {/* Corner accents */}
             <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400" />
             <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400" />
             <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400" />
@@ -92,60 +106,108 @@ export default function WalletModal({
                 </h3>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Info Message */}
+            {/* Steps */}
+            <div className="flex items-center gap-3 mb-5">
+              {["Connect Wallet", "Sign & Verify"].map((step, i) => {
+                const done = i === 0 && isConnected;
+                const active =
+                  (i === 0 && !isConnected) || (i === 1 && isConnected);
+                return (
+                  <div key={step} className="flex items-center gap-2 flex-1">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                        done
+                          ? "bg-cyan-500 text-black"
+                          : active
+                            ? "bg-cyan-500/20 border border-cyan-500 text-cyan-400"
+                            : "bg-gray-800 text-gray-500"
+                      }`}
+                    >
+                      {done ? "✓" : i + 1}
+                    </div>
+                    <span
+                      className={`text-[10px] font-mono uppercase tracking-wider ${active ? "text-cyan-400" : "text-gray-500"}`}
+                    >
+                      {step}
+                    </span>
+                    {i === 0 && (
+                      <div className="flex-1 h-px bg-gray-800 mx-1" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Info */}
             <div className="mb-4 rounded-xl bg-cyan-950/30 border border-cyan-500/20 p-3.5 flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
               <p className="text-xs text-cyan-200/90 leading-relaxed">
-                RPS Arena operates on standard smart contracts. By connecting
-                your wallet, you will be able to claim achievements, log
-                tournament scores, and stake $RPS tokens.
+                {!isConnected
+                  ? "Step 1: Select and connect your wallet using RainbowKit."
+                  : "Step 2: Sign a message to prove ownership and link your wallet to your RPS Arena account."}
               </p>
             </div>
 
-            {/* Providers List */}
-            <div className="space-y-2.5">
-              {WALLET_PROVIDERS.map((provider) => (
-                <button
-                  key={provider.name}
-                  onClick={() => handleSelectProvider(provider.name)}
-                  className="w-full flex items-center justify-between p-3.5 rounded-xl border border-gray-800 hover:border-cyan-500/40 bg-[#141C2F]/50 hover:bg-[#1A253F]/60 transition-all duration-300 group text-left"
-                >
-                  <div className="flex items-center gap-3.5">
-                    <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]">
-                      {provider.icon}
-                    </span>
-                    <div>
-                      <h4 className="text-sm font-semibold text-white tracking-wide group-hover:text-cyan-300 transition-colors">
-                        {provider.name}
-                      </h4>
-                      <p className="text-[11px] text-gray-400 leading-normal mt-0.5">
-                        {provider.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {!provider.isInstalled && (
-                      <span className="text-[9px] font-mono tracking-widest text-amber-500 uppercase px-1.5 py-0.5 border border-amber-500/20 rounded bg-amber-500/5">
-                        Cloud
-                      </span>
-                    )}
-                    <ArrowUpRight className="w-4 h-4 text-gray-500 group-hover:text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-                </button>
-              ))}
-            </div>
+            {/* Error */}
+            {error && (
+              <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
+                {error}
+              </div>
+            )}
 
-            {/* Footer Sign */}
+            {/* Step 1: RainbowKit connect */}
+            {!isConnected && (
+              <div className="flex justify-center py-2">
+                <ConnectButton
+                  label="Select Wallet"
+                  showBalance={false}
+                  chainStatus="none"
+                />
+              </div>
+            )}
+
+            {/* Step 2: Sign & link to backend */}
+            {isConnected && (
+              <div className="space-y-3">
+                <div className="rounded-xl bg-[#141C2F]/60 border border-gray-800 p-3.5 flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">
+                      Connected
+                    </p>
+                    <p className="text-sm font-mono text-white font-bold">
+                      {address?.slice(0, 6)}...{address?.slice(-4)}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleVerify}
+                  disabled={isConnecting}
+                  className="w-full py-3 rounded-xl bg-linear-to-r from-cyan-500 to-blue-500 text-black font-bold text-xs tracking-widest uppercase hover:from-cyan-400 hover:to-blue-400 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Waiting for signature...
+                    </>
+                  ) : (
+                    "Sign & Link Wallet"
+                  )}
+                </button>
+              </div>
+            )}
+
             <div className="mt-5 text-center">
               <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                Secured by Ethers.js & Cryptographic Signatures
+                Secured by Cryptographic Signatures
               </p>
             </div>
           </motion.div>

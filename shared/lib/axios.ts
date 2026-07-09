@@ -5,26 +5,15 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // required for cookie-based auth
-});
-
-// Attach auth token to every request if present in localStorage
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("rps_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
+  withCredentials: true, // sends httpOnly cookies automatically on every request
 });
 
 // Surface backend error messages cleanly
+// Error shape: { message: { message: string, error: string, statusCode: number } }
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const body = error.response?.data;
-    // Error shape: { message: { message: string, error: string, statusCode: number } }
     const message =
       body?.message?.message ||
       body?.message ||

@@ -11,7 +11,12 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, loadProfile } = useAuthStore();
+
+  // Sync fresh profile from server on mount (cookie handles auth automatically)
+  useEffect(() => {
+    if (user) loadProfile();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const {
     mobileSidebarOpen,
     setMobileSidebarOpen,

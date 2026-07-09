@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import {
   registerUser,
   loginUser,
+  logoutUser,
   fetchProfile,
   RegisterPayload,
   LoginPayload,
@@ -19,8 +20,9 @@ interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   login: (payload: LoginPayload) => Promise<void>;
   loadProfile: () => Promise<void>;
+  setUser: (user: AuthUser) => void;
   clearError: () => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 //Store
@@ -63,16 +65,19 @@ export const useAuthStore = create<AuthState>()(
           const user = await fetchProfile();
           set({ user });
         } catch {
-          // Session expired or not logged in — clear user silently
           set({ user: null });
         }
       },
 
+      setUser: (user) => set({ user }),
+
       clearError: () => set({ error: null }),
 
-      logout: () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("rps_token");
+      logout: async () => {
+        try {
+          await logoutUser(); // clears httpOnly cookie on server
+        } catch {
+          // ignore — clear local state regardless
         }
         set({ user: null, error: null });
       },
