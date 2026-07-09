@@ -12,17 +12,17 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { PlayerProfile, Tab } from "../types";
+import { AuthUser } from "@/features/auth/api/auth.api";
 
 interface SidebarProps {
-  profile: PlayerProfile;
+  user: AuthUser;
   isOpenMobile: boolean;
   setIsOpenMobile: (open: boolean) => void;
   onLogout: () => void;
 }
 
 export default function Sidebar({
-  profile,
+  user,
   isOpenMobile,
   setIsOpenMobile,
   onLogout,
@@ -46,19 +46,26 @@ export default function Sidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[#070A12] border-r border-[#141C2F]/80 p-5 font-sans justify-between">
       <div>
-        {/* Commander Profile Summary Box */}
+        {/* User Profile Summary */}
         <div className="flex items-center gap-3.5 pb-6 mb-6 border-b border-gray-800/60">
-          <div className="relative w-11 h-11 rounded-xl bg-linear-to-tr from-purple-500/20 to-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-            <Shield className="w-5.5 h-5.5 text-indigo-400" />
+          <div className="relative w-11 h-11 rounded-xl bg-linear-to-tr from-purple-500/20 to-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 text-sm font-mono font-bold text-indigo-300 uppercase">
+            {user.username[0]}
             <div className="absolute inset-0 rounded-xl border border-indigo-500/10 animate-pulse" />
           </div>
-          <div>
-            <h4 className="text-sm font-black text-white tracking-widest uppercase">
-              Commander
+          <div className="min-w-0">
+            <h4 className="text-sm font-black text-white tracking-widest uppercase truncate">
+              {user.username}
             </h4>
             <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mt-0.5">
-              Rank:{" "}
-              <span className="text-indigo-300 font-semibold">Diamond III</span>
+              <span className="text-indigo-300 font-semibold">
+                {user.points.toLocaleString()} pts
+              </span>
+              {" · "}
+              <span
+                className={user.isActive ? "text-emerald-400" : "text-gray-500"}
+              >
+                {user.isActive ? "Active" : "Inactive"}
+              </span>
             </p>
           </div>
         </div>
