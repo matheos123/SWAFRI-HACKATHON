@@ -196,8 +196,7 @@ export default function ProfilePage() {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-300">
           {[
-            { label: "Email", value: user.email },
-            { label: "Role", value: user.role },
+            { label: "Email or Wallet Address", value: user.email },
             { label: "Status", value: user.isActive ? "Active" : "Inactive" },
             {
               label: "Member Since",
@@ -212,7 +211,7 @@ export default function ProfilePage() {
               <span className="text-[16px] font-mono text-gray-500 uppercase tracking-widest">
                 {label}
               </span>
-              <span className="font-mono text-gray-200 truncate text-[18px]">{value}</span>
+              <span className="font-mono text-gray-200 truncate text-[14px]">{value}</span>
             </div>
           ))}
         </div>
