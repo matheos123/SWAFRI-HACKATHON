@@ -37,13 +37,17 @@ export function useSiweLogin(): UseSiweLoginReturn {
       }
 
       // Step 2: Get challenge message from backend
-      const message = await getSiweChallenge(address);
+      const normalizedAddress = address.toLowerCase();
+      const message = await getSiweChallenge(normalizedAddress);
 
       // Step 3: Sign the challenge with wagmi
       const signature = await signMessageAsync({ message });
 
       // Step 4: Verify with backend → creates/logs in user, sets cookie
-      const user = await verifySiweSignature({ address, signature });
+      const user = await verifySiweSignature({
+        address: normalizedAddress,
+        signature,
+      });
 
       // Step 5: Store user and redirect
       setUser(user);

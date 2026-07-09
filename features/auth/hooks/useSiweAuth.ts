@@ -32,16 +32,19 @@ export function useSiweAuth(): UseSiweAuthReturn {
     setIsConnecting(true);
     setError(null);
 
+    // Normalize to lowercase — backend validator requires lowercase addresses
+    const normalizedAddress = address.toLowerCase();
+
     try {
       // Step 1: Get challenge message from backend
-      const message = await getWalletChallenge(address);
+      const message = await getWalletChallenge(normalizedAddress);
 
       // Step 2: Sign with connected wallet
       const signature = await signMessageAsync({ message });
 
       // Step 3: Send to backend to link wallet to account
       const result = await connectWallet({
-        walletAddress: address,
+        walletAddress: normalizedAddress,
         signature,
       });
 
