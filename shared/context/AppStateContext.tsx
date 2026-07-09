@@ -1,14 +1,10 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Match, PlayerProfile, Badge, LeaderboardEntry } from "@/shared/types";
-import {
-  initialProfile,
-  initialBadges,
-  initialMatches,
-  leaderboardData,
-} from "@/constants";
+import { Match, Badge, LeaderboardEntry } from "@/shared/types";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { initialBadges, initialMatches, leaderboardData } from "@/constants";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getStorageItem<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -21,15 +17,14 @@ function getStorageItem<T>(key: string, fallback: T): T {
   }
 }
 
-// ─── Context shape ───────────────────────────────────────────────────────────
+// ─── Context shape ────────────────────────────────────────────────────────────
 
 interface AppStateContextValue {
-  // Navigation
+  // UI navigation state
   mobileSidebarOpen: boolean;
   setMobileSidebarOpen: (open: boolean) => void;
 
-  // Data
-  profile: PlayerProfile;
+  // Game data (mock until backend endpoints are added)
   badges: Badge[];
   matches: Match[];
   leaderboard: LeaderboardEntry[];
@@ -41,42 +36,33 @@ interface AppStateContextValue {
   setIsTxModalOpen: (open: boolean) => void;
   selectedTxMatch: Match | null;
 
-  // Queue state
+  // Matchmaking
   isQueueActive: boolean;
   setIsQueueActive: (active: boolean) => void;
 
   // Handlers
-  handleConnectWallet: (address: string) => void;
-  handleDisconnectWallet: () => void;
-  handleAddNewMatch: (match: Match) => void;
-  handleUpdateProfileStats: (
-    rpChange: number,
-    rpsChange: number,
-    isWin: boolean,
-  ) => void;
-  handleUpdateProfileNameAndTitle: (name: string, title: string) => void;
   handleOpenTxDetail: (match: Match) => void;
   handleTriggerFindMatch: () => void;
+  handleConnectWallet: (address: string) => void;
+  handleDisconnectWallet: () => void;
   handleLogout: () => void;
 }
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
+// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const [profile, setProfile] = useState<PlayerProfile>(() =>
-    getStorageItem("rps_arena_profile", initialProfile),
-  );
-  const [badges, setBadges] = useState<Badge[]>(() =>
+  // Mock game data — will be replaced when match/badge/leaderboard endpoints are integrated
+  const [badges] = useState<Badge[]>(() =>
     getStorageItem("rps_arena_badges", initialBadges),
   );
   const [matches, setMatches] = useState<Match[]>(() =>
     getStorageItem("rps_arena_matches", initialMatches),
   );
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() =>
+  const [leaderboard] = useState<LeaderboardEntry[]>(() =>
     getStorageItem("rps_arena_leaderboard", leaderboardData),
   );
 
@@ -85,107 +71,36 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [selectedTxMatch, setSelectedTxMatch] = useState<Match | null>(null);
   const [isQueueActive, setIsQueueActive] = useState(false);
 
-  // Persist to localStorage
-  useEffect(() => {
-    localStorage.setItem("rps_arena_profile", JSON.stringify(profile));
-  }, [profile]);
-  useEffect(() => {
-    localStorage.setItem("rps_arena_badges", JSON.stringify(badges));
-  }, [badges]);
+  // Persist matches locally until backend match history is integrated
   useEffect(() => {
     localStorage.setItem("rps_arena_matches", JSON.stringify(matches));
   }, [matches]);
-  useEffect(() => {
-    localStorage.setItem("rps_arena_leaderboard", JSON.stringify(leaderboard));
-  }, [leaderboard]);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
-
-  const handleConnectWallet = (address: string) => {
-    setProfile((prev) => ({
-      ...prev,
-      walletConnected: true,
-      walletAddress: address,
-      balanceRPS: prev.balanceRPS === 0 ? 150 : prev.balanceRPS,
-    }));
-  };
-
-  const handleDisconnectWallet = () => {
-    setProfile((prev) => ({
-      ...prev,
-      walletConnected: false,
-      walletAddress: null,
-    }));
-  };
-
-  const handleAddNewMatch = (newMatch: Match) => {
-    setMatches((prev) => [newMatch, ...prev]);
-  };
-
-  const handleUpdateProfileStats = (
-    rpChange: number,
-    rpsChange: number,
-    isWin: boolean,
-  ) => {
-    setProfile((prev) => {
-      const newWins = isWin ? prev.wins + 1 : prev.wins;
-      const newLosses = !isWin && rpChange < 0 ? prev.losses + 1 : prev.losses;
-      const newMatches = prev.totalMatches + 1;
-      const newWinRate = parseFloat(((newWins / newMatches) * 100).toFixed(1));
-      return {
-        ...prev,
-        totalMatches: newMatches,
-        wins: newWins,
-        losses: newLosses,
-        winRate: newWinRate,
-        balanceRPS: Math.max(0, prev.balanceRPS + rpsChange),
-        reputation: Math.min(
-          prev.reputationMax,
-          Math.max(0, prev.reputation + (isWin ? 5 : -3)),
-        ),
-      };
-    });
-
-    setLeaderboard((prev) =>
-      prev
-        .map((leader) => {
-          if (leader.username === profile.username) {
-            return {
-              ...leader,
-              score: Math.max(0, leader.score + rpChange),
-              level: profile.level,
-              winRate: `${profile.winRate}%`,
-            };
-          }
-          return leader;
-        })
-        .sort((a, b) => b.score - a.score),
-    );
-  };
-
-  const handleUpdateProfileNameAndTitle = (name: string, title: string) => {
-    setProfile((prev) => ({ ...prev, username: name, title }));
-    setLeaderboard((prev) =>
-      prev.map((leader) =>
-        leader.username === profile.username || leader.username === "Archer:07"
-          ? { ...leader, username: name }
-          : leader,
-      ),
-    );
-  };
+  // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleOpenTxDetail = (match: Match) => {
     setSelectedTxMatch(match);
     setIsTxModalOpen(true);
   };
 
-  // handleTriggerFindMatch is called from Navbar — navigation handled by the Navbar itself via router
   const handleTriggerFindMatch = () => {
     setIsQueueActive(true);
   };
 
+  // Wallet handlers — will call backend wallet endpoints when available
+  const handleConnectWallet = (address: string) => {
+    // TODO: call PATCH /auth/wallet endpoint when available
+    console.log("Wallet connect:", address);
+  };
+
+  const handleDisconnectWallet = () => {
+    // TODO: call wallet disconnect endpoint when available
+    console.log("Wallet disconnect");
+  };
+
   const handleLogout = () => {
-    console.log("Log out clicked");
+    useAuthStore.getState().logout();
+    window.location.href = "/login";
   };
 
   return (
@@ -193,7 +108,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       value={{
         mobileSidebarOpen,
         setMobileSidebarOpen,
-        profile,
         badges,
         matches,
         leaderboard,
@@ -204,13 +118,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         selectedTxMatch,
         isQueueActive,
         setIsQueueActive,
-        handleConnectWallet,
-        handleDisconnectWallet,
-        handleAddNewMatch,
-        handleUpdateProfileStats,
-        handleUpdateProfileNameAndTitle,
         handleOpenTxDetail,
         handleTriggerFindMatch,
+        handleConnectWallet,
+        handleDisconnectWallet,
         handleLogout,
       }}
     >
@@ -219,7 +130,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAppState(): AppStateContextValue {
   const ctx = useContext(AppStateContext);

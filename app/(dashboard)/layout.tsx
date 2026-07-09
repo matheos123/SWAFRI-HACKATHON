@@ -1,16 +1,20 @@
 "use client";
 import React from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/shared/components/Navbar";
 import Sidebar from "@/shared/components/Sidebar";
 import TxModal from "@/shared/components/TXModal";
 import WalletModal from "@/shared/components/WalletModal";
 import { useAppState } from "@/shared/context/AppStateContext";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const {
     mobileSidebarOpen,
     setMobileSidebarOpen,
-    profile,
     isWalletModalOpen,
     setIsWalletModalOpen,
     isTxModalOpen,
@@ -23,13 +27,30 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     handleLogout,
   } = useAppState();
 
+  // Guard: redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#070A13] flex items-center justify-center">
+        <div className="text-cyan-400 font-mono text-xs uppercase tracking-widest animate-pulse">
+          Initializing...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       id="rps-arena-root"
       className="min-h-screen bg-[#070A13] text-[#F3F4F6] flex flex-col overflow-x-hidden antialiased"
     >
       <Navbar
-        profile={profile}
+        user={user}
         onOpenWallet={() => setIsWalletModalOpen(true)}
         onDisconnectWallet={handleDisconnectWallet}
         onTriggerFindMatch={handleTriggerFindMatch}
@@ -38,7 +59,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-1 w-full">
         <Sidebar
-          profile={profile}
+          user={user}
           isOpenMobile={mobileSidebarOpen}
           setIsOpenMobile={setMobileSidebarOpen}
           onLogout={handleLogout}
@@ -98,7 +119,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         isOpen={isTxModalOpen}
         match={selectedTxMatch}
         onClose={() => setIsTxModalOpen(false)}
-        walletAddress={profile.walletAddress || "0x0000...0000"}
+        walletAddress={user.walletAddress || "0x0000...0000"}
       />
     </div>
   );

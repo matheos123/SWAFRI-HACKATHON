@@ -1,33 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { RegisterFormData, RegisterSchema } from "@/shared/schemas";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { RegisterFormData, RegisterSchema } from "@/shared/schemas";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 export default function RegisterCard() {
-    const {
-      register,
-      handleSubmit,
-      formState: { errors },
-    } = useForm<RegisterFormData>({
-      resolver: zodResolver(RegisterSchema),
-      defaultValues: {
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      },
-    }); 
-  
-    const onSubmit = (data: RegisterFormData) => {
-      console.log("Form data:", data);
-      // Traditional login logic goes here
-    };
+  const router = useRouter();
+  const {
+    register: registerUser,
+    isLoading,
+    error,
+    clearError,
+  } = useAuthStore();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    clearError();
+    await registerUser({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+    });
+    const { error: storeError, user } = useAuthStore.getState();
+    if (!storeError && user) {
+      router.push("/lobby");
+    }
+  };
 
   return (
     <div className="w-full rounded-xl border border-slate-800/80 bg-[#0d111a]/95 p-7 sm:p-8 shadow-2xl backdrop-blur-md">
-      {/* Title Section inside the card */}
+      {/* Title */}
       <div className="mb-6 space-y-1">
         <h2 className="text-sm font-semibold tracking-wide text-slate-200 font-mono">
           Create Operator Account
@@ -37,119 +55,127 @@ export default function RegisterCard() {
         </p>
       </div>
 
+      {/* API error banner */}
+      {error && (
+        <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Operator Name Field */}
+        {/* Username */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-             Name
+            Username
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
               👤
             </span>
             <input
-            {...register("name")}
+              {...register("username")}
               type="text"
               placeholder="Callsign_01"
-              className="w-full rounded-lg border border-slate-200/20 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-indigo-500/30"
-              required
+              className="w-full rounded-lg border border-slate-800/80 bg-[#0d111a] py-2.5 pl-9 pr-4 text-sm text-slate-300 placeholder-slate-600 outline-none transition-all focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
             />
-            {errors.name && (
-              <p className="text-[10px] text-red-400 mt-1">{errors.name.message}</p>
-            )}
           </div>
+          {errors.username && (
+            <p className="text-[10px] text-red-400 mt-1">
+              {errors.username.message}
+            </p>
+          )}
         </div>
 
-        {/* Neural Link Email Field */}
+        {/* Email */}
         <div className="space-y-1.5">
           <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-            Link Email
+            Email
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">
               @
             </span>
             <input
-            {...register("email")}
+              {...register("email")}
               type="email"
               placeholder="commander@rps-arena.io"
-              className="w-full rounded-lg border border-slate-200/20 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-indigo-500/30"
-              required
+              className="w-full rounded-lg border border-slate-800/80 bg-[#0d111a] py-2.5 pl-9 pr-4 text-sm text-slate-300 placeholder-slate-600 outline-none transition-all focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
             />
-            {errors.email && (
-              <p className="text-[10px] text-red-400 mt-1">{errors.email.message}</p>
-            )}
           </div>
+          {errors.email && (
+            <p className="text-[10px] text-red-400 mt-1">
+              {errors.email.message}
+            </p>
+          )}
         </div>
 
-        {/* Access Keys Side-by-Side Split Row */}
+        {/* Password + Confirm */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Access Key */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-              Your Password
+              Password
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">
                 🔒
               </span>
               <input
-              {...register("password")}
+                {...register("password")}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-slate-200/20 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-indigo-500/30"
-                required
+                className="w-full rounded-lg border border-slate-800/80 bg-[#0d111a] py-2.5 pl-9 pr-4 text-sm text-slate-300 placeholder-slate-600 outline-none transition-all focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
               />
-              {errors.password && (
-                <p className="text-[10px] text-red-400 mt-1">{errors.password.message}</p>
-              )}
             </div>
+            {errors.password && (
+              <p className="text-[10px] text-red-400 mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
-          {/* Verify Key */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-             Confirm Password
+              Confirm
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">
                 🛡️
               </span>
               <input
-              {...register("confirmPassword")}
+                {...register("confirmPassword")}
                 type="password"
                 placeholder="••••••••"
-                className="w-full rounded-lg border border-slate-200/20 bg-white py-2.5 pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-indigo-500/30"
-                required
+                className="w-full rounded-lg border border-slate-800/80 bg-[#0d111a] py-2.5 pl-9 pr-4 text-sm text-slate-300 placeholder-slate-600 outline-none transition-all focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
               />
-              {errors.confirmPassword && (
-                <p className="text-[10px] text-red-400 mt-1">{errors.confirmPassword.message}</p>
-              )}
             </div>
+            {errors.confirmPassword && (
+              <p className="text-[10px] text-red-400 mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Submit */}
         <button
           type="submit"
-          className="mt-4 w-full rounded-md bg-[#b4c6ff] py-3 text-xs font-bold tracking-widest text-[#090b11] uppercase shadow-lg shadow-indigo-400/20 hover:bg-[#c5d5ff] active:scale-[0.99] transition-all"
+          disabled={isLoading}
+          className="mt-4 w-full rounded-md bg-[#b4c6ff] py-3 text-xs font-bold tracking-widest text-[#090b11] uppercase shadow-lg shadow-indigo-400/20 hover:bg-[#c5d5ff] active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Initialize Register
+          {isLoading ? "Initializing..." : "Initialize Register"}
         </button>
       </form>
 
-      {/* Card Footer Options */}
       <div className="mt-6 text-center space-y-3">
         <p className="text-xs text-slate-400">
           Already have an account?{" "}
           <Link
-            href="/"
+            href="/login"
             className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             Login
           </Link>
         </p>
-
         <div className="flex items-center justify-center gap-4 text-[10px] font-bold tracking-widest text-slate-500 uppercase pt-2 border-t border-slate-800/40">
           <a href="#" className="hover:text-slate-400 transition-colors">
             Terms

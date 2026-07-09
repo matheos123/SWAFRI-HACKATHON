@@ -1,10 +1,10 @@
 "use client";
 import { Bell, Settings, Wallet, Shield } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { PlayerProfile } from "@/shared/types";
+import { AuthUser } from "@/features/auth/api/auth.api";
 
 interface NavbarProps {
-  profile: PlayerProfile;
+  user: AuthUser;
   onOpenWallet: () => void;
   onDisconnectWallet: () => void;
   onTriggerFindMatch: () => void;
@@ -12,7 +12,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({
-  profile,
+  user,
   onOpenWallet,
   onDisconnectWallet,
   onTriggerFindMatch,
@@ -20,13 +20,14 @@ export default function Navbar({
 }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
+
   return (
     <nav
       id="app-navbar"
       className="sticky top-0 z-40 w-full border-b border-[#141C2F]/80 bg-[#0A0E17]/95 backdrop-blur-md px-4 sm:px-8 py-3.5"
     >
       <div className="w-full flex items-center justify-between gap-4">
-        {/* Left Side: Brand Logo */}
+        {/* Brand Logo */}
         <div
           onClick={() => router.push("/profile")}
           className="flex items-center gap-2 cursor-pointer group"
@@ -40,9 +41,9 @@ export default function Navbar({
           </span>
         </div>
 
-        {/* Right Action Stack */}
+        {/* Right actions */}
         <div className="flex items-center gap-3.5">
-          {/* Find Match Button */}
+          {/* Find Match */}
           <button
             onClick={() => {
               onTriggerFindMatch();
@@ -52,25 +53,36 @@ export default function Navbar({
             className={`h-10 px-6 rounded-lg text-xs font-bold font-sans tracking-widest uppercase transition-all duration-300 select-none ${
               isQueueActive
                 ? "bg-amber-600/30 border border-amber-500/30 text-amber-200 animate-pulse cursor-not-allowed"
-                : "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.45)] cursor-pointer"
+                : "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)] cursor-pointer"
             }`}
           >
             {isQueueActive ? "In Queue..." : "Find Match"}
           </button>
 
-          {/* Quick Stats: ERC-20 Token Balance */}
-          {profile.walletConnected && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-[#101726] border border-gray-800 rounded-lg px-3 py-1.5">
-              <span className="text-[10px] font-mono text-gray-400 font-medium">
-                BAL:
-              </span>
-              <span className="text-xs font-bold font-mono text-cyan-300">
-                {profile.balanceRPS.toFixed(2)} $RPS
-              </span>
-            </div>
-          )}
+          {/* Points balance */}
+          <div className="hidden sm:flex items-center gap-1.5 bg-[#101726] border border-gray-800 rounded-lg px-3 py-1.5">
+            <span className="text-[10px] font-mono text-gray-400 font-medium">
+              PTS:
+            </span>
+            <span className="text-xs font-bold font-mono text-cyan-300">
+              {user.points.toLocaleString()}
+            </span>
+          </div>
 
-          {/* Action Icons */}
+          {/* User avatar + username */}
+          <button
+            onClick={() => router.push("/profile")}
+            className="hidden sm:flex items-center gap-2 px-3 h-10 rounded-lg border border-gray-800 bg-[#101726] hover:border-gray-700 transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full bg-linear-to-br from-cyan-500/30 to-indigo-500/30 border border-cyan-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-300 uppercase">
+              {user.username[0]}
+            </div>
+            <span className="text-xs font-mono text-gray-300 font-semibold">
+              {user.username}
+            </span>
+          </button>
+
+          {/* Icons */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() =>
@@ -83,7 +95,6 @@ export default function Navbar({
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
             </button>
-
             <button
               onClick={() => router.push("/settings")}
               className={`p-2 rounded-lg transition-colors ${
@@ -96,15 +107,18 @@ export default function Navbar({
             </button>
           </div>
 
-          {/* Connect Wallet Button */}
-          {profile.walletConnected && profile.walletAddress ? (
+          {/* Wallet */}
+          {user.walletAddress ? (
             <button
               onClick={onDisconnectWallet}
               title="Click to disconnect wallet"
               className="flex items-center gap-2 px-3.5 h-10 rounded-lg border border-cyan-500/25 bg-cyan-950/20 text-cyan-400 text-xs font-mono font-bold tracking-wide hover:bg-rose-950/20 hover:border-rose-500/30 hover:text-rose-400 transition-all duration-300"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>{profile.walletAddress}</span>
+              <span>
+                {user.walletAddress.slice(0, 6)}...
+                {user.walletAddress.slice(-4)}
+              </span>
             </button>
           ) : (
             <button
