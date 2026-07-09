@@ -76,7 +76,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("rps_arena_matches", JSON.stringify(matches));
   }, [matches]);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
+  // ── Handlers 
 
   const handleOpenTxDetail = (match: Match) => {
     setSelectedTxMatch(match);
@@ -134,7 +134,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Hook 
 
 export function useAppState(): AppStateContextValue {
   const ctx = useContext(AppStateContext);

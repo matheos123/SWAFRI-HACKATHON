@@ -1,11 +1,14 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "https://rps-arena-2q2f.onrender.com/api/v1",
+  baseURL:
+    process.env.NODE_ENV === "production"
+      ? "https://rps-arena-2q2f.onrender.com/api/v1"
+      : "/api/v1", // proxied through Next.js in dev — same origin, cookies work
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // sends httpOnly cookies automatically on every request
+  withCredentials: true,
 });
 
 // Surface backend error messages cleanly
