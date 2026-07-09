@@ -2,16 +2,18 @@
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { wagmiConfig } from "@/shared/lib/wagmi";
 import "@rainbow-me/rainbowkit/styles.css";
-
-const queryClient = new QueryClient();
 
 export default function Web3Provider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // useState ensures one QueryClient per component mount, not re-created on render
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>

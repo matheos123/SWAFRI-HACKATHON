@@ -1,16 +1,44 @@
 import apiClient from "@/shared/lib/axios";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types 
 
 export interface WalletChallengeResponse {
   success: boolean;
+  message: string; // the exact message to sign
+  nonce?: string;
+}
+
+export interface SiweVerifyPayload {
+  address: string;
+  signature: string;
+}
+
+export interface SiweVerifyResponse {
+  success: boolean;
   data: {
-    message: string; // exact message to sign
-    nonce: string;
+    user: {
+      id: string;
+      email: string;
+      username: string;
+      avatar: string | null;
+      walletAddress: string | null;
+      role: string;
+      isActive: boolean;
+      wins: number;
+      losses: number;
+      totalMatches: number;
+      currentStreak: number;
+      longestStreak: number;
+      points: number;
+      blockchainProfileId: string | null;
+      walletVerifiedAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+    };
   };
 }
 
-export interface ConnectWalletPayload {
+export interface WalletConnectPayload {
   walletAddress: string;
   signature: string;
 }
@@ -22,7 +50,7 @@ export interface WalletConnectResult {
   verifiedAt: string;
 }
 
-export interface ConnectWalletResponse {
+export interface WalletConnectResponse {
   success: boolean;
   data: WalletConnectResult;
 }
@@ -37,24 +65,47 @@ export interface WalletStatusResponse {
   };
 }
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
+// ─── SIWE (Sign-In With Ethereum) 
+// Used when the wallet IS the login method (no email/password)
 
-/** Step 1: Get the challenge message the user must sign */
-export async function getWalletChallenge(
-  address: string,
-): Promise<{ message: string; nonce: string }> {
+/** Step 1: Get the challenge message for SIWE login */
+export async function getSiweChallenge(address: string): Promise<string> {
+  const { data } = await apiClient.get<WalletChallengeResponse>(
+    `/auth/wallet/challenge`,
+    { params: { address } },
+  );
+  // Backend returns { success, message, nonce } — message is top-level
+  return data.message;
+}
+
+/** Step 3: Verify signature → logs in or registers the user */
+export async function verifySiweSignature(
+  payload: SiweVerifyPayload,
+): Promise<SiweVerifyResponse["data"]["user"]> {
+  const { data } = await apiClient.post<SiweVerifyResponse>(
+    "/auth/wallet/verify",
+    payload,
+  );
+  return data.data.user;
+}
+
+// ─── Wallet Connect (link wallet to existing email account) 
+// Used when the user already has an email account and wants to link a wallet
+
+/** Step 1: Get the challenge message for wallet linking */
+export async function getWalletChallenge(address: string): Promise<string> {
   const { data } = await apiClient.get<WalletChallengeResponse>(
     `/wallet/challenge`,
     { params: { address } },
   );
-  return data.data;
+  return data.message;
 }
 
-/** Step 3: Submit wallet address + signature to link wallet */
+/** Step 3: Connect wallet to existing account */
 export async function connectWallet(
-  payload: ConnectWalletPayload,
+  payload: WalletConnectPayload,
 ): Promise<WalletConnectResult> {
-  const { data } = await apiClient.post<ConnectWalletResponse>(
+  const { data } = await apiClient.post<WalletConnectResponse>(
     "/wallet/connect",
     payload,
   );

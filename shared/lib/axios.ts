@@ -1,10 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL:
-    process.env.NODE_ENV === "production"
-      ? "https://rps-arena-2q2f.onrender.com/api/v1"
-      : "/api/v1", // proxied through Next.js in dev — same origin, cookies work
+  baseURL: "https://rps-arena-2q2f.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,14 +9,13 @@ const apiClient = axios.create({
 });
 
 // Surface backend error messages cleanly
-// Error shape: { message: { message: string, error: string, statusCode: number } }
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const body = error.response?.data;
     const message =
       body?.message?.message ||
-      body?.message ||
+      (Array.isArray(body?.message) ? body.message[0] : body?.message) ||
       body?.error ||
       error.message ||
       "Something went wrong";

@@ -6,6 +6,8 @@ import {
   connectWallet,
 } from "@/features/wallet/api/wallet.api";
 
+// ─── Hook: link wallet to existing email account
+
 interface UseSiweAuthReturn {
   isConnecting: boolean;
   error: string | null;
@@ -31,19 +33,19 @@ export function useSiweAuth(): UseSiweAuthReturn {
     setError(null);
 
     try {
-      // Step 1: Get the exact challenge message from the backend
-      const { message } = await getWalletChallenge(address);
+      // Step 1: Get challenge message from backend
+      const message = await getWalletChallenge(address);
 
-      // Step 2: Sign it with the connected wallet via wagmi
+      // Step 2: Sign with connected wallet
       const signature = await signMessageAsync({ message });
 
-      // Step 3: Send to backend — links wallet to current account
+      // Step 3: Send to backend to link wallet to account
       const result = await connectWallet({
         walletAddress: address,
         signature,
       });
 
-      // Step 4: Update the user in the auth store with the new wallet info
+      // Step 4: Update store with new wallet info
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
         setUser({

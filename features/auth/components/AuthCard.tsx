@@ -1,3 +1,4 @@
+"use client";
 import LoginForm from "./LoginForm";
 import Web3Providers from "./Web3Providers";
 
