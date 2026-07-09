@@ -7,12 +7,14 @@ import {
 } from "@/shared/lib/socket";
 import { useSocketStore } from "@/features/game/store/socket.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useFriendsStore } from "@/features/friends/store/friends.store";
 
 export function useSocket() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { setConnected, setMatchmakingStatus, setQueuePosition, setMatchData } =
     useSocketStore();
+  const { addIncomingRequest, loadRequests } = useFriendsStore();
 
   useEffect(() => {
     if (!user) return;
@@ -20,11 +22,11 @@ export function useSocket() {
     const socket = getSocket();
     connectSocket();
 
-    //  Connection
+    // ── Connection
     socket.on("connect", () => setConnected(true));
     socket.on("disconnect", () => setConnected(false));
 
-    //  Matchmaking 
+    // ── Matchmaking 
     socket.on("matchmaking:queued", (data: { position: number }) => {
       setMatchmakingStatus("queued");
       setQueuePosition(data.position);
@@ -40,17 +42,31 @@ export function useSocket() {
       }) => {
         setMatchmakingStatus("matched");
         setMatchData(data);
-        // Navigate to the game screen
         router.push(`/match/${data.matchId}`);
       },
     );
 
-    // Notifications 
+    // ── Notifications 
     socket.on(
       "notification:live",
-      (data: { type: string; message: string }) => {
+      (data: { type: string; message: string; data?: any }) => {
         console.log("[notification]", data.type, data.message);
-        // Toast integration can be added here
+
+        if (data.type === "friend_request" && data.data) {
+          // Add new request to store in real-time
+          addIncomingRequest({
+            id: data.data.friendshipId ?? data.data.id,
+            requesterId: data.data.requesterId ?? data.data.senderId,
+            username: data.data.username ?? "Unknown",
+            avatar: data.data.avatar ?? null,
+            createdAt: new Date().toISOString(),
+          });
+        }
+
+        if (data.type === "friend_accepted") {
+          // Reload friends list when someone accepts our request
+          loadRequests();
+        }
       },
     );
 
@@ -63,7 +79,6 @@ export function useSocket() {
     };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Disconnect when user logs out
   useEffect(() => {
     if (!user) disconnectSocket();
   }, [user]);

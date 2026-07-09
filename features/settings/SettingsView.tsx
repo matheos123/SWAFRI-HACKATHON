@@ -201,58 +201,6 @@ export default function SettingsView({
             )}
           </div>
         </div>
-
-        {/* UI Preferences */}
-        <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-5">
-          <div className="flex items-center gap-2 pb-3 border-b border-gray-800/40 mb-4">
-            <Volume2 className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm font-black text-white font-sans tracking-widest uppercase">
-              Preferences
-            </h3>
-          </div>
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between py-1.5">
-              <div>
-                <span className="text-white font-semibold block">
-                  Combat Audio
-                </span>
-                <span className="text-[10px] text-gray-500 block mt-0.5">
-                  Toggle weapon animation sounds
-                </span>
-              </div>
-              <button
-                onClick={() => setEnableSound(!enableSound)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                {enableSound ? (
-                  <ToggleRight className="w-8 h-8 text-cyan-400" />
-                ) : (
-                  <ToggleLeft className="w-8 h-8 text-gray-600" />
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div>
-                <span className="text-white font-semibold block">
-                  Auto-Show Receipts
-                </span>
-                <span className="text-[10px] text-gray-500 block mt-0.5">
-                  Pop up tx logs on battle complete
-                </span>
-              </div>
-              <button
-                onClick={() => setAutoTxLogs(!autoTxLogs)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                {autoTxLogs ? (
-                  <ToggleRight className="w-8 h-8 text-cyan-400" />
-                ) : (
-                  <ToggleLeft className="w-8 h-8 text-gray-600" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

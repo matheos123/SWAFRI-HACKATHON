@@ -420,8 +420,6 @@ export default function SquadView({
       <InviteModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
-        candidates={recruitCandidates}
-        onInvite={onInviteCandidate}
       />
     </div>
   );

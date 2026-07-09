@@ -1,194 +1,177 @@
-"use client"
+"use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Search, UserPlus, Check, SlidersHorizontal } from "lucide-react";
-import { InviteSquad } from "@/shared/types";
+import { X, Search, UserPlus, Loader2, CheckCircle } from "lucide-react";
+import { getUserById, sendFriendRequest, FriendUser } from "../api/friends.api";
 
-
-interface RecruitSquadModalProps {
+interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
-  candidates: InviteSquad[];
-  onInvite: (id: string) => void;
 }
 
-export default function InviteModal({
-  isOpen,
-  onClose,
-  candidates,
-  onInvite,
-}: RecruitSquadModalProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"recent" | "all">("recent");
+export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
+  const [userId, setUserId] = useState("");
+  const [preview, setPreview] = useState<FriendUser | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [invited, setInvited] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
 
-  const filteredCandidates = candidates.filter((candidate) =>
-    candidate.username.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const handleLookup = async () => {
+    if (!userId.trim()) return;
+    setLookupLoading(true);
+    setLookupError(null);
+    setPreview(null);
+    setInvited(false);
+    try {
+      const user = await getUserById(userId.trim());
+      setPreview(user);
+    } catch (err) {
+      setLookupError(err instanceof Error ? err.message : "User not found");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!preview) return;
+    setInviteLoading(true);
+    try {
+      await sendFriendRequest(preview.id);
+      setInvited(true);
+    } catch (err) {
+      setLookupError(
+        err instanceof Error ? err.message : "Failed to send request",
+      );
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setUserId("");
+    setPreview(null);
+    setLookupError(null);
+    setInvited(false);
+    onClose();
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Blur Background Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            onClick={handleClose}
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           />
-
-          {/* Modal Content Box */}
           <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 15 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 15 }}
-            transition={{ type: "spring", duration: 0.4 }}
-            className="relative w-full max-w-lg bg-[#0A0F1D] border border-cyan-500/20 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden z-10 font-sans"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative w-full max-w-md rounded-2xl border border-[#141C2F]/80 bg-[#090E1B] p-6 shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#141C2F]">
-              <div className="flex items-center gap-2.5">
-                <UserPlus className="w-5 h-5 text-cyan-400 animate-pulse" />
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">
-                  RECRUIT_SQUAD
-                </h3>
-              </div>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-sm font-black text-white font-sans tracking-widest uppercase">
+                Invite Operator
+              </h3>
               <button
-                onClick={onClose}
-                className="p-1 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800/40 transition-colors"
+                onClick={handleClose}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex px-6 border-b border-[#141C2F]/50 bg-[#070A13]">
+            <p className="text-[11px] text-gray-500 font-mono mb-4">
+              Paste the operator's User ID to send a friend request.
+            </p>
+
+            {/* ID input + lookup */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                placeholder="e.g. d79cf718-45e7-4014-..."
+                className="flex-1 h-10 px-3 rounded-xl border border-gray-800 bg-[#050812] text-xs font-mono text-white focus:outline-none focus:border-cyan-500/50 transition-colors placeholder-gray-600"
+              />
               <button
-                onClick={() => setActiveTab("recent")}
-                className={`py-3 px-1 font-mono text-[10px] uppercase tracking-widest relative ${
-                  activeTab === "recent"
-                    ? "text-cyan-400 font-bold"
-                    : "text-gray-500 hover:text-gray-300"
-                }`}
+                onClick={handleLookup}
+                disabled={lookupLoading || !userId.trim()}
+                className="h-10 px-4 rounded-xl bg-[#1A253F] border border-gray-700 text-xs font-bold text-gray-300 hover:text-white hover:border-cyan-500/40 transition-colors disabled:opacity-50 flex items-center gap-1.5"
               >
-                RECENT_OPS
-                {activeTab === "recent" && (
-                  <motion.div
-                    layoutId="modal-active-tab-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400"
-                  />
-                )}
-              </button>
-            </div>
-
-            {/* Main Interactive Panel */}
-            <div className="p-6 space-y-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="FILTER BY OPERATOR TAG..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#050812] border border-[#141C2F] rounded-xl pl-11 pr-4 py-3 text-xs font-mono text-gray-200 placeholder-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all uppercase tracking-wider"
-                />
-              </div>
-
-              {/* Recruits List */}
-              <div className="max-h-[340px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                {filteredCandidates.length > 0 ? (
-                  filteredCandidates.map((candidate) => {
-                    const isOffline = candidate.status === "OFFLINE";
-                    return (
-                      <div
-                        key={candidate.id}
-                        className="flex items-center justify-between p-3.5 bg-[#080D1A]/80 border border-[#141C2F]/60 rounded-xl hover:border-cyan-500/25 transition-all group"
-                      >
-                        {/* Avatar + Meta details */}
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <img
-                              src={candidate.avatarUrl}
-                              alt={candidate.username}
-                              referrerPolicy="no-referrer"
-                              className={`w-10 h-10 rounded-lg object-cover border border-gray-800 group-hover:border-cyan-500/30 transition-colors ${
-                                isOffline ? "grayscale opacity-50" : ""
-                              }`}
-                            />
-                            {/* Connection Indicator status dot */}
-                            <div
-                              className={`absolute bottom-[-2px] right-[-2px] w-3 h-3 rounded-full border-2 border-[#0A0F1D] ${
-                                isOffline
-                                  ? "bg-gray-600"
-                                  : candidate.status === "READY"
-                                    ? "bg-emerald-500"
-                                    : candidate.status === "IN_LOBBY"
-                                      ? "bg-cyan-400"
-                                      : "bg-amber-400"
-                              }`}
-                            />
-                          </div>
-
-                          <div>
-                            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                              {candidate.username}
-                            </h4>
-                            <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
-                              {isOffline ? (
-                                "OFFLINE"
-                              ) : (
-                                <>
-                                  LVL {candidate.level}{" "}
-                                  <span className="mx-1">•</span>{" "}
-                                  <span className="text-cyan-400/80">
-                                    {candidate.status}
-                                  </span>
-                                </>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Invite / Status Button */}
-                        <div>
-                          {isOffline ? (
-                            <span className="text-[10px] font-mono text-gray-600 font-bold uppercase tracking-widest px-3 py-1.5 bg-gray-950/40 rounded-lg border border-transparent">
-                              OFFLINE
-                            </span>
-                          ) : candidate.invited ? (
-                            <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold uppercase tracking-widest px-3 py-1.5 bg-emerald-950/20 rounded-lg border border-emerald-500/25">
-                              <Check className="w-3.5 h-3.5" />
-                              INVITED
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => onInvite(candidate.id)}
-                              className="text-[10px] font-mono text-cyan-400 hover:text-white font-bold uppercase tracking-widest px-3.5 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-500/10 active:scale-95 transition-all"
-                            >
-                              INVITE
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
+                {lookupLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <div className="text-center py-8 bg-[#050812]/50 border border-dashed border-[#141C2F] rounded-xl">
-                    <p className="text-xs font-mono text-gray-600">
-                      NO MATCHING TACTICAL OPERATIVES FOUND
+                  <Search className="w-3.5 h-3.5" />
+                )}
+                Look up
+              </button>
+            </div>
+
+            {/* Error */}
+            {lookupError && (
+              <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-xs text-rose-400 font-mono">
+                {lookupError}
+              </div>
+            )}
+
+            {/* Preview */}
+            {preview && (
+              <div className="rounded-xl border border-[#141C2F] bg-[#050812] p-4 flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-sm font-mono font-bold text-cyan-300 uppercase">
+                    {preview.avatar ? (
+                      <img
+                        src={preview.avatar}
+                        alt={preview.username}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    ) : (
+                      preview.username[0]
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white uppercase tracking-wider">
+                      {preview.username}
+                    </p>
+                    <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                      {preview.points.toLocaleString()} pts · {preview.wins}W{" "}
+                      {preview.losses}L
                     </p>
                   </div>
+                </div>
+
+                {invited ? (
+                  <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-mono">
+                    <CheckCircle className="w-4 h-4" />
+                    Sent
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleInvite}
+                    disabled={inviteLoading}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#A5C3F9] text-[#0A0F1D] text-xs font-black uppercase tracking-widest hover:bg-[#B7D2FC] transition-colors disabled:opacity-60"
+                  >
+                    {inviteLoading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-3.5 h-3.5" />
+                    )}
+                    Add
+                  </button>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* Footer decoration */}
-            <div className="px-6 py-3 bg-[#050812] border-t border-[#141C2F]/50 flex justify-between items-center text-[9px] font-mono text-gray-600 uppercase tracking-widest">
-              <span>ACTIVE REGISTRY CODES</span>
-              <span>RNG_SEED: AF923</span>
-            </div>
+            <p className="text-[10px] text-gray-600 font-mono text-center">
+              Share your ID from your profile page so others can find you.
+            </p>
           </motion.div>
         </div>
       )}
