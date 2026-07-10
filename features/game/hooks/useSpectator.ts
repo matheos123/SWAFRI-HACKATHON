@@ -16,7 +16,7 @@ export function useSpectator() {
   const [rooms, setRooms] = useState<ActiveRoom[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { initGame } = useGameStore();
+  const { initSpectate } = useGameStore();
 
   const fetchRooms = () => {
     setIsLoading(true);
@@ -33,9 +33,18 @@ export function useSpectator() {
     });
 
     socket.on("spectate:joined", (data: any) => {
-      // Navigate to match screen in spectator mode
+      // Inline spectate initialization in game store
       if (data.roomId) {
-        router.push(`/spectate/${data.roomId}`);
+        initSpectate({
+          roomId: data.roomId,
+          matchId: data.matchId ?? data.roomId,
+          isRanked: data.isRanked ?? false,
+          player1: data.player1 ?? { userId: "p1", username: "Player 1" },
+          player2: data.player2 ?? { userId: "p2", username: "Player 2" },
+          currentRound: data.currentRound ?? 1,
+          player1Wins: data.player1Wins ?? 0,
+          player2Wins: data.player2Wins ?? 0,
+        });
       }
     });
 

@@ -10,65 +10,68 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-const LOBBY_ROOM = "lobby";
-
-export function useLobbyChat() {
+export function useLobbyChat(roomId = "lobby") {
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isJoined, setIsJoined] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !roomId) return;
     const socket = getSocket();
 
-    // Join lobby chat room
-    socket.emit("chat:join", { roomId: LOBBY_ROOM });
+    setMessages([]);
+    setIsJoined(false);
+
+    // Join chat room
+    socket.emit("chat:join", { roomId });
 
     // Receive history on join
-    socket.on(
-      "chat:joined",
-      (data: { roomId: string; history: ChatMessage[] }) => {
-        if (data.roomId === LOBBY_ROOM) {
-          setMessages(data.history ?? []);
-          setIsJoined(true);
-        }
-      },
-    );
+    const handleJoined = (data: { roomId: string; history: ChatMessage[] }) => {
+      if (data.roomId === roomId) {
+        setMessages(data.history ?? []);
+        setIsJoined(true);
+      }
+    };
+
+    socket.on("chat:joined", handleJoined);
 
     // Receive new messages
-    socket.on("chat:message", (data: ChatMessage) => {
-      setMessages((prev) => [...prev, data]);
-    });
+    const handleMessage = (data: ChatMessage & { roomId?: string }) => {
+      if (!data.roomId || data.roomId === roomId) {
+        setMessages((prev) => [...prev, data]);
+      }
+    };
+
+    socket.on("chat:message", handleMessage);
 
     // Receive history on manual request
-    socket.on(
-      "chat:history",
-      (data: { roomId: string; messages: ChatMessage[] }) => {
-        if (data.roomId === LOBBY_ROOM) {
-          setMessages(data.messages ?? []);
-        }
-      },
-    );
+    const handleHistory = (data: { roomId: string; messages: ChatMessage[] }) => {
+      if (data.roomId === roomId) {
+        setMessages(data.messages ?? []);
+      }
+    };
+
+    socket.on("chat:history", handleHistory);
 
     return () => {
-      socket.off("chat:joined");
-      socket.off("chat:message");
-      socket.off("chat:history");
+      socket.off("chat:joined", handleJoined);
+      socket.off("chat:message", handleMessage);
+      socket.off("chat:history", handleHistory);
     };
-  }, [user]);
+  }, [user, roomId]);
 
   const sendMessage = useCallback(
     (content: string) => {
-      if (!user || !content.trim()) return;
+      if (!user || !content.trim() || !roomId) return;
       const socket = getSocket();
       socket.emit("chat:message", {
-        roomId: LOBBY_ROOM,
+        roomId,
         userId: user.id,
         username: user.username,
         content: content.trim(),
       });
     },
-    [user],
+    [user, roomId],
   );
 
   return { messages, isJoined, sendMessage };

@@ -8,9 +8,20 @@ import {
   FriendRequest,
 } from "../api/friends.api";
 
+export interface GameInvite {
+  id: string;
+  senderId: string;
+  username: string;
+  avatar: string | null;
+  roomId: string;
+  matchId: string;
+  isRanked?: boolean;
+}
+
 interface FriendsState {
   friends: Friendship[];
   requests: FriendRequest[];
+  gameInvites: GameInvite[];
   isLoading: boolean;
   error: string | null;
 
@@ -20,11 +31,14 @@ interface FriendsState {
   blockRequest: (friendshipId: string) => Promise<void>;
   removeFriend: (friendId: string) => Promise<void>;
   addIncomingRequest: (request: FriendRequest) => void; // called from socket
+  addGameInvite: (invite: GameInvite) => void;
+  declineGameInvite: (inviteId: string) => void;
 }
 
 export const useFriendsStore = create<FriendsState>((set, get) => ({
   friends: [],
   requests: [],
+  gameInvites: [],
   isLoading: false,
   error: null,
 
@@ -75,5 +89,15 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
 
   addIncomingRequest: (request) => {
     set((s) => ({ requests: [request, ...s.requests] }));
+  },
+
+  addGameInvite: (invite) => {
+    set((s) => ({ gameInvites: [invite, ...s.gameInvites] }));
+  },
+
+  declineGameInvite: (inviteId) => {
+    set((s) => ({
+      gameInvites: s.gameInvites.filter((i) => i.id !== inviteId),
+    }));
   },
 }));

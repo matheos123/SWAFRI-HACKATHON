@@ -8,13 +8,14 @@ import {
 import { useSocketStore } from "@/features/game/store/socket.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useFriendsStore } from "@/features/friends/store/friends.store";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 
 export function useSocket() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { setConnected, setMatchmakingStatus, setQueuePosition, setMatchData } =
     useSocketStore();
-  const { addIncomingRequest, loadRequests } = useFriendsStore();
+  const { addIncomingRequest, loadRequests, addGameInvite } = useFriendsStore();
 
   useEffect(() => {
     if (!user) return;
@@ -42,9 +43,32 @@ export function useSocket() {
       }) => {
         setMatchmakingStatus("matched");
         setMatchData(data);
-        router.push(`/match/${data.matchId}`);
+        // Bypassed router.push. Match is now inline in MatchArena.tsx on the lobby page
+        
+        // Broadcast this match start to our squad so they can auto-spectate
+        const { squad } = useSquadStore.getState();
+        if (squad) {
+          socket.emit("chat:message", {
+            roomId: `squad-${squad.name}`,
+            userId: "system",
+            username: "SYSTEM",
+            content: `SYSTEM:MATCH_START:${data.matchId}:${data.roomId}`,
+          });
+        }
       },
     );
+
+    socket.on("chat:message", (msg: { roomId?: string; content: string }) => {
+      const { squad } = useSquadStore.getState();
+      if (squad && msg.roomId === `squad-${squad.name}` && msg.content?.startsWith("SYSTEM:MATCH_START:")) {
+        const parts = msg.content.split(":");
+        const matchId = parts[2];
+        const roomId = parts[3];
+        if (roomId) {
+          socket.emit("spectate:join", { roomId });
+        }
+      }
+    });
 
     // ── Notifications 
     socket.on(
@@ -63,6 +87,18 @@ export function useSocket() {
           });
         }
 
+        if (data.type === "game_invite" && data.data) {
+          addGameInvite({
+            id: data.data.matchId ?? data.data.roomId ?? String(Date.now()),
+            senderId: data.data.senderId ?? data.data.inviterId ?? "Unknown",
+            username: data.data.username ?? "Unknown",
+            avatar: data.data.avatar ?? null,
+            roomId: data.data.roomId,
+            matchId: data.data.matchId,
+            isRanked: data.data.isRanked,
+          });
+        }
+
         if (data.type === "friend_accepted") {
           // Reload friends list when someone accepts our request
           loadRequests();
@@ -75,6 +111,7 @@ export function useSocket() {
       socket.off("disconnect");
       socket.off("matchmaking:queued");
       socket.off("matchmaking:matched");
+      socket.off("chat:message");
       socket.off("notification:live");
     };
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps

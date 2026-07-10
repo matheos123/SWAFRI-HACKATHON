@@ -39,6 +39,27 @@ export async function getUserById(userId: string): Promise<FriendUser> {
   return data.data;
 }
 
+export interface LeaderboardUser {
+  rank: number;
+  userId: string;
+  username: string;
+  avatar: string | null;
+  walletAddress: string | null;
+  wins: number;
+  losses: number;
+  totalMatches: number;
+  points: number;
+}
+
+/** GET /leaderboard — fetch ranked players to list in invite modal */
+export async function getLeaderboardUsers(limit = 50, offset = 0): Promise<LeaderboardUser[]> {
+  const { data } = await apiClient.get<{ success: boolean; data: LeaderboardUser[] }>(
+    "/leaderboard",
+    { params: { limit, offset } }
+  );
+  return data.data;
+}
+
 /** POST /friends/request */
 export async function sendFriendRequest(addresseeId: string): Promise<void> {
   await apiClient.post("/friends/request", { addresseeId });

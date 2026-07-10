@@ -14,27 +14,57 @@ import {
 import { useFriendsStore } from "@/features/friends/store/friends.store";
 import InviteModal from "@/features/friends/components/InviteModal";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useSocketStore } from "@/features/game/store/socket.store";
+import { useRouter } from "next/navigation";
+import SquadView from "@/features/friends/SquadView";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 
 export default function FriendsPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const {
     friends,
     requests,
+    gameInvites,
     isLoading,
     loadFriends,
     loadRequests,
     acceptRequest,
     blockRequest,
     removeFriend,
+    declineGameInvite,
   } = useFriendsStore();
+  const { setMatchData } = useSocketStore();
+  
+  const {
+    squad,
+    squadMembers,
+    initializeSquad,
+    disbandSquad,
+    updateSquadName,
+    updateSquadPrivacy,
+    kickMember,
+    toggleMute,
+  } = useSquadStore();
 
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"friends" | "requests">("friends");
+  const [activeTab, setActiveTab] = useState<"friends" | "requests" | "squad">("squad");
 
   useEffect(() => {
     loadFriends();
     loadRequests();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAcceptInvite = (invite: any) => {
+    setMatchData({
+      roomId: invite.roomId,
+      matchId: invite.matchId,
+      isRanked: invite.isRanked ?? false,
+      opponent: { userId: invite.senderId, username: invite.username }
+    });
+    declineGameInvite(invite.id);
+    router.push(`/match/${invite.matchId}`);
+  };
 
   if (!user) return null;
 
@@ -81,6 +111,17 @@ export default function FriendsPage() {
       {/* Tabs */}
       <div className="flex bg-[#111A2E] p-1 rounded-lg border border-gray-800 w-fit">
         <button
+          onClick={() => setActiveTab("squad")}
+          className={`flex items-center gap-2 px-4 py-2 rounded text-[11px] font-bold font-mono uppercase tracking-wider transition-colors ${
+            activeTab === "squad"
+              ? "bg-[#1D2B4D] text-white shadow"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <Shield className="w-3.5 h-3.5 text-cyan-500/80" />
+          Squad Command
+        </button>
+        <button
           onClick={() => setActiveTab("friends")}
           className={`flex items-center gap-2 px-4 py-2 rounded text-[11px] font-bold font-mono uppercase tracking-wider transition-colors ${
             activeTab === "friends"
@@ -101,9 +142,9 @@ export default function FriendsPage() {
         >
           <Clock className="w-3.5 h-3.5" />
           Requests
-          {requests.length > 0 && (
+          {requests.length + gameInvites.length > 0 && (
             <span className="ml-1 w-4 h-4 rounded-full bg-cyan-500 text-black text-[9px] font-black flex items-center justify-center">
-              {requests.length}
+              {requests.length + gameInvites.length}
             </span>
           )}
         </button>
@@ -116,6 +157,20 @@ export default function FriendsPage() {
         </div>
       ) : (
         <>
+          {/* Squad view */}
+          {activeTab === "squad" && (
+            <SquadView
+              squad={squad}
+              squadMembers={squadMembers}
+              onUpdateSquadName={updateSquadName}
+              onUpdateSquadPrivacy={updateSquadPrivacy}
+              onKickMember={kickMember}
+              onToggleMute={toggleMute}
+              onDisbandSquad={disbandSquad}
+              onInitializeSquad={initializeSquad}
+            />
+          )}
+
           {/* Friends list */}
           {activeTab === "friends" && (
             <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden">
@@ -172,63 +227,130 @@ export default function FriendsPage() {
 
           {/* Requests list */}
           {activeTab === "requests" && (
-            <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden">
-              {requests.length === 0 ? (
-                <div className="p-12 text-center">
+            <div className="space-y-6">
+              {requests.length === 0 && gameInvites.length === 0 ? (
+                <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-12 text-center">
                   <Clock className="w-10 h-10 text-gray-700 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 font-mono">
-                    No pending requests.
+                    No pending requests or invitations.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-900/40">
-                  {requests.map((r) => (
-                    <motion.div
-                      key={r.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex items-center justify-between px-5 py-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm font-mono font-bold text-indigo-300 uppercase">
-                          {r.avatar ? (
-                            <img
-                              src={r.avatar}
-                              alt={r.username}
-                              className="w-full h-full object-cover rounded-xl"
-                            />
-                          ) : (
-                            r.username[0]
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-white uppercase tracking-wider">
-                            {r.username}
-                          </p>
-                          <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                            wants to join your squad
-                          </p>
-                        </div>
+                <>
+                  {/* Game Invites */}
+                  {gameInvites.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest px-2">
+                        Battle Arena Invitations
+                      </h3>
+                      <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden divide-y divide-gray-900/40">
+                        {gameInvites.map((invite) => (
+                          <motion.div
+                            key={invite.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex items-center justify-between px-5 py-4"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-sm font-mono font-bold text-cyan-300 uppercase">
+                                {invite.avatar ? (
+                                  <img
+                                    src={invite.avatar}
+                                    alt={invite.username}
+                                    className="w-full h-full object-cover rounded-xl"
+                                  />
+                                ) : (
+                                  invite.username[0]
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                  {invite.username}
+                                </p>
+                                <p className="text-[10px] text-cyan-400 font-mono mt-0.5">
+                                  invited you to a battle match {invite.isRanked ? " (Ranked)" : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleAcceptInvite(invite)}
+                                className="p-2 rounded-xl border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/20 transition-colors"
+                                title="Accept Match"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => declineGameInvite(invite.id)}
+                                className="p-2 rounded-xl border border-gray-700 text-gray-500 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
+                                title="Decline"
+                              >
+                                <UserX className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => acceptRequest(r.id)}
-                          className="p-2 rounded-xl border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/20 transition-colors"
-                          title="Accept"
-                        >
-                          <UserCheck className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => blockRequest(r.id)}
-                          className="p-2 rounded-xl border border-gray-700 text-gray-500 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
-                          title="Block"
-                        >
-                          <UserX className="w-3.5 h-3.5" />
-                        </button>
+                    </div>
+                  )}
+
+                  {/* Friend Requests */}
+                  {requests.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest px-2">
+                        Squad Command Requests
+                      </h3>
+                      <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden divide-y divide-gray-900/40">
+                        {requests.map((r) => (
+                          <motion.div
+                            key={r.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex items-center justify-between px-5 py-4"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm font-mono font-bold text-indigo-300 uppercase">
+                                {r.avatar ? (
+                                  <img
+                                    src={r.avatar}
+                                    alt={r.username}
+                                    className="w-full h-full object-cover rounded-xl"
+                                  />
+                                ) : (
+                                  r.username[0]
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                  {r.username}
+                                </p>
+                                <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                                  wants to join your squad
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => acceptRequest(r.id)}
+                                className="p-2 rounded-xl border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/20 transition-colors"
+                                title="Accept"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => blockRequest(r.id)}
+                                className="p-2 rounded-xl border border-gray-700 text-gray-500 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
+                                title="Block"
+                              >
+                                <UserX className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        ))}
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

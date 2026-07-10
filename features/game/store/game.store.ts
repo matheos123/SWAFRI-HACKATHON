@@ -41,12 +41,27 @@ interface GameState {
   myWins: number;
   opponentWins: number;
 
+  // Spectator mode support
+  isSpectating: boolean;
+  player1: { userId: string; username: string } | null;
+  player2: { userId: string; username: string } | null;
+
   // Actions
   initGame: (data: {
     roomId: string;
     matchId: string;
     isRanked: boolean;
     opponent: { userId: string; username: string };
+  }) => void;
+  initSpectate: (data: {
+    roomId: string;
+    matchId?: string;
+    isRanked: boolean;
+    player1: { userId: string; username: string };
+    player2: { userId: string; username: string };
+    currentRound: number;
+    player1Wins: number;
+    player2Wins: number;
   }) => void;
   setMyMove: (move: Move) => void;
   setOpponentMoved: () => void;
@@ -72,6 +87,10 @@ export const useGameStore = create<GameState>((set) => ({
   myWins: 0,
   opponentWins: 0,
 
+  isSpectating: false,
+  player1: null,
+  player2: null,
+
   initGame: (data) =>
     set({
       roomId: data.roomId,
@@ -86,18 +105,40 @@ export const useGameStore = create<GameState>((set) => ({
       matchResult: null,
       myWins: 0,
       opponentWins: 0,
+      isSpectating: false,
+      player1: null,
+      player2: null,
+    }),
+
+  initSpectate: (data) =>
+    set({
+      roomId: data.roomId,
+      matchId: data.matchId ?? null,
+      isRanked: data.isRanked,
+      player1: data.player1,
+      player2: data.player2,
+      opponent: data.player2,
+      phase: "reveal",
+      currentRound: data.currentRound,
+      myWins: data.player1Wins,
+      opponentWins: data.player2Wins,
+      myMove: null,
+      opponentMoved: false,
+      roundResult: null,
+      matchResult: null,
+      isSpectating: true,
     }),
 
   setMyMove: (move) => set({ myMove: move, phase: "waiting" }),
   setOpponentMoved: () => set({ opponentMoved: true }),
 
   setRoundResult: (result) =>
-    set({
+    set((state) => ({
       roundResult: result,
       phase: "reveal",
-      myWins: result.player1Wins, // will be corrected in useGameSocket based on userId
+      myWins: result.player1Wins,
       opponentWins: result.player2Wins,
-    }),
+    })),
 
   nextRound: (roundNumber) =>
     set({
@@ -124,5 +165,8 @@ export const useGameStore = create<GameState>((set) => ({
       matchResult: null,
       myWins: 0,
       opponentWins: 0,
+      isSpectating: false,
+      player1: null,
+      player2: null,
     }),
 }));
