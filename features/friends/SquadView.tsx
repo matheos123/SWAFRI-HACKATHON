@@ -105,7 +105,7 @@ export default function SquadView({
             <div className="space-y-1">
               <button
                 onClick={startRename}
-                className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider hover:text-cyan-400 transition-colors w-full text-left"
+                className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider hover:text-cyan-400 transition-colors w-full text-left cursor-pointer"
               >
                 <Edit2 className="w-3.5 h-3.5 text-cyan-500/80" />
                 <span>Rename Squad</span>
@@ -134,7 +134,7 @@ export default function SquadView({
             </div>
 
             {/* Control: Privacy Level Toggle */}
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <button
                 onClick={handleCyclePrivacy}
                 className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider hover:text-cyan-400 transition-colors w-full text-left"
@@ -156,10 +156,10 @@ export default function SquadView({
               <p className="text-[10px] text-gray-500 leading-relaxed font-sans">
                 Toggle squad visibility: Public, Private, or Cloaked.
               </p>
-            </div>
+            </div> */}
 
             {/* Control: Relinquish Command / Disband Squad */}
-            <div className="space-y-1">
+            {/* <div className="space-y-1">
               <button
                 onClick={() => {
                   if (
@@ -179,7 +179,7 @@ export default function SquadView({
                 Transfer tactical leadership or dismantle current combat unit
                 designation.
               </p>
-            </div>
+            </div> */}
           </div>
 
           {/* Current Squad status summary widget */}

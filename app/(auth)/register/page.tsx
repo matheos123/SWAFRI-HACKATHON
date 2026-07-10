@@ -3,7 +3,7 @@ import RegisterCard from "@/features/auth/components/RegisterCard";
 
 export default function RegisterPage() {
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center bg-[#090b11] overflow-hidden font-sans antialiased selection:bg-indigo-500/30">
+    <main className="relative flex min-h-screen w-full items-center justify-center bg-[#090b11] overflow-x-hidden py-12 font-sans antialiased selection:bg-indigo-500/30">
       {/* Ambient background glows */}
       <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-slate-800/20 blur-[120px]" />
       <div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-950/20 blur-[120px]" />
