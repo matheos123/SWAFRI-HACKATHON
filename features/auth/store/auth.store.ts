@@ -9,6 +9,7 @@ import {
   LoginPayload,
   AuthUser,
 } from "../api/auth.api";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 
 //State shape
 
@@ -38,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await registerUser(payload);
+          useSquadStore.getState().disbandSquad();
           set({ user: response.data.user, isLoading: false });
         } catch (err) {
           set({
@@ -51,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await loginUser(payload);
+          useSquadStore.getState().disbandSquad();
           set({ user: response.data.user, isLoading: false });
         } catch (err) {
           set({
@@ -79,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           // ignore — clear local state regardless
         }
+        useSquadStore.getState().disbandSquad();
         set({ user: null, error: null });
       },
     }),
