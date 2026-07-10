@@ -72,7 +72,7 @@ export interface WalletStatusResponse {
 export async function getSiweChallenge(address: string): Promise<string> {
   const { data } = await apiClient.get<WalletChallengeResponse>(
     `/auth/wallet/challenge`,
-    { params: { address: address.toLowerCase() } },
+    { params: { address } },
   );
   // Backend returns { success, data: { message, nonce } }
   return (data as any).data?.message ?? (data as any).message;
@@ -84,7 +84,7 @@ export async function verifySiweSignature(
 ): Promise<SiweVerifyResponse["data"]["user"]> {
   const { data } = await apiClient.post<SiweVerifyResponse>(
     "/auth/wallet/verify",
-    { address: payload.address.toLowerCase(), signature: payload.signature },
+    { address: payload.address, signature: payload.signature },
   );
   return data.data.user;
 }
@@ -96,7 +96,7 @@ export async function verifySiweSignature(
 export async function getWalletChallenge(address: string): Promise<string> {
   const { data } = await apiClient.get<WalletChallengeResponse>(
     `/wallet/challenge`,
-    { params: { address: address.toLowerCase() } },
+    { params: { address } },
   );
   return (data as any).data?.message ?? (data as any).message;
 }

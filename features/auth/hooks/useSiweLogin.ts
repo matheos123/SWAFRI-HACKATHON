@@ -37,7 +37,7 @@ export function useSiweLogin(): UseSiweLoginReturn {
       }
 
       // Step 2: Get challenge message from backend
-      const normalizedAddress = address.toLowerCase();
+      const normalizedAddress = address;
       const message = await getSiweChallenge(normalizedAddress);
 
       // Step 3: Sign the challenge with wagmi

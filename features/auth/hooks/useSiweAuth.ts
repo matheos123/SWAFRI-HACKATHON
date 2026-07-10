@@ -32,8 +32,8 @@ export function useSiweAuth(): UseSiweAuthReturn {
     setIsConnecting(true);
     setError(null);
 
-    // Normalize to lowercase — backend validator requires lowercase addresses
-    const normalizedAddress = address.toLowerCase();
+    // Use original checksummed address — backend validator requires valid checksum
+    const normalizedAddress = address;
 
     try {
       // Step 1: Get challenge message from backend
