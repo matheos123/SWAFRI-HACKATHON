@@ -18,34 +18,30 @@ import {
   Sparkles,
   AlertTriangle,
 } from "lucide-react";
-import { Squad, SquadMember, InviteSquad } from "@/shared/types";
+import { Squad, SquadMember } from "@/shared/types";
 import CreateGroupView from "@/features/friends/components/CreateGroup";
 import InviteModal from "@/features/friends/components/InviteModal";
 
 interface SquadViewProps {
   squad: Squad | null;
   squadMembers: SquadMember[];
-  recruitCandidates: InviteSquad[];
   onUpdateSquadName: (name: string) => void;
   onUpdateSquadPrivacy: (privacy: "Public" | "Encrypted" | "Cloaked") => void;
   onKickMember: (id: string) => void;
   onToggleMute: (id: string) => void;
   onDisbandSquad: () => void;
   onInitializeSquad: (name: string, privacy: "Public" | "Encrypted") => void;
-  onInviteCandidate: (id: string) => void;
 }
 
 export default function SquadView({
   squad,
   squadMembers,
-  recruitCandidates,
   onUpdateSquadName,
   onUpdateSquadPrivacy,
   onKickMember,
   onToggleMute,
   onDisbandSquad,
   onInitializeSquad,
-  onInviteCandidate,
 }: SquadViewProps) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
