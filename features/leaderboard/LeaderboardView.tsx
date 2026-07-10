@@ -14,31 +14,6 @@ export default function LeaderboardView({
 }: LeaderboardViewProps) {
   return (
     <div id="leaderboard-view-container" className="space-y-6">
-      {/* Competitive Season Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-indigo-500/10 bg-linear-to-r from-indigo-950/20 to-slate-950/30 p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
-      >
-        <div className="flex items-center gap-4 text-center sm:text-left">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-400/20 flex items-center justify-center shrink-0">
-            <Trophy className="w-6 h-6 text-indigo-400" />
-          </div>
-          <div>
-            <h3 className="text-base font-black text-white font-sans tracking-widest uppercase">
-              Season 4: Arena Champions
-            </h3>
-            <p className="text-xs text-gray-400 mt-1">
-              Top 3 commanders receive exclusive physical gold-backed NFT
-              achievements & staking pools.
-            </p>
-          </div>
-        </div>
-        <div className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#141B2D] border border-gray-800 text-xs font-mono font-bold text-indigo-300">
-          <span>ENDS: 24D 18H 32M</span>
-        </div>
-      </motion.div>
-
       {/* Leaderboard Table Container */}
       <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-5 sm:p-6">
         <div className="flex items-center justify-between pb-4 border-b border-gray-800/40 mb-5">

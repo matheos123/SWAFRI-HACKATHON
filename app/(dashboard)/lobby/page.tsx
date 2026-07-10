@@ -5,7 +5,7 @@ import { Eye, Loader2, Swords, Radio } from "lucide-react";
 import MatchArena from "@/features/lobby/components/MatchArena";
 import MatchHistory from "@/features/history/MatchHistory";
 import LeaderboardPanel from "@/features/leaderboard/components/LeaderboardPanel";
-import PlayerStatsPanel from "@/features/leaderboard/PlayerStatusPanel";
+// import PlayerStatsPanel from "@/features/leaderboard/PlayerStatusPanel";
 import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
 import { useSpectator } from "@/features/game/hooks/useSpectator";
 
@@ -90,15 +90,15 @@ export default function LobbyPage() {
       {/* LEFT: Match arena + history/leaderboard panels */}
       <div className="xl:col-span-3 space-y-6">
         <MatchArena />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <MatchHistory />
           <LeaderboardPanel />
-        </div>
+        </div> */}
       </div>
 
       {/* RIGHT: Stats + spectator + chat */}
       <div className="xl:col-span-1 space-y-6 h-full flex flex-col">
-        <PlayerStatsPanel />
+        {/* <PlayerStatsPanel /> */}
         <SpectatorPanel />
         <LiveChatPanel />
       </div>
