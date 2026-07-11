@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useAccount, useChainId, useSignMessage, useSwitchChain } from "wagmi";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { SUPPORTED_CHAIN } from "@/shared/lib/chain";
@@ -7,7 +7,7 @@ import {
   connectWallet,
 } from "@/features/wallet/api/wallet.api";
 
-// ─── Hook: link wallet to existing email account
+//Hook: link wallet to existing email account
 
 interface UseSiweAuthReturn {
   isConnecting: boolean;
@@ -19,6 +19,7 @@ interface UseSiweAuthReturn {
 export function useSiweAuth(): UseSiweAuthReturn {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inFlightRef = useRef(false);
 
   const { address } = useAccount();
   const chainId = useChainId();
@@ -26,12 +27,15 @@ export function useSiweAuth(): UseSiweAuthReturn {
   const { switchChainAsync } = useSwitchChain();
   const { setUser } = useAuthStore();
 
-  const verifyAndLink = async () => {
+  const verifyAndLink = useCallback(async () => {
+    if (inFlightRef.current) return;
+
     if (!address) {
       setError("No wallet connected. Please connect your wallet first.");
       return;
     }
 
+    inFlightRef.current = true;
     setIsConnecting(true);
     setError(null);
 
@@ -75,9 +79,10 @@ export function useSiweAuth(): UseSiweAuthReturn {
         setError(err?.message || "Wallet verification failed.");
       }
     } finally {
+      inFlightRef.current = false;
       setIsConnecting(false);
     }
-  };
+  }, [address, chainId, setUser, signMessageAsync, switchChainAsync]);
 
   return {
     isConnecting,

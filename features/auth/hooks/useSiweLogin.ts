@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useAccount, useChainId, useSignMessage, useSwitchChain } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -30,7 +30,7 @@ export function useSiweLogin(): UseSiweLoginReturn {
   const { openConnectModal } = useConnectModal();
   const { setUser } = useAuthStore();
 
-  const loginWithWallet = async () => {
+  const loginWithWallet = useCallback(async () => {
     // Bail if already in progress
     if (inFlightRef.current) return;
     inFlightRef.current = true;
@@ -44,6 +44,7 @@ export function useSiweLogin(): UseSiweLoginReturn {
           throw new Error("Wallet connection is unavailable. Refresh and try again.");
         }
         openConnectModal();
+        setIsLoading(false);
         // loginWithWallet will be re-triggered by the auto-effect after connection
         return;
       }
@@ -80,7 +81,15 @@ export function useSiweLogin(): UseSiweLoginReturn {
       inFlightRef.current = false;
       setIsLoading(false);
     }
-  };
+  }, [
+    address,
+    chainId,
+    isConnected,
+    openConnectModal,
+    setUser,
+    signMessageAsync,
+    switchChainAsync,
+  ]);
 
   return {
     isLoading,

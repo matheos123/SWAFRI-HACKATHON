@@ -114,7 +114,7 @@ export function useSocket() {
       socket.off("chat:message");
       socket.off("notification:live");
     };
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user]); 
 
   useEffect(() => {
     if (!user) disconnectSocket();

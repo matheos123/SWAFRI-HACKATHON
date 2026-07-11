@@ -132,7 +132,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Hook 
 
 export function useAppState(): AppStateContextValue {
   const ctx = useContext(AppStateContext);
