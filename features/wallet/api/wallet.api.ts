@@ -4,7 +4,11 @@ import apiClient from "@/shared/lib/axios";
 
 export interface WalletChallengeResponse {
   success: boolean;
-  message: string; // the exact message to sign
+  data?: {
+    message: string;
+    nonce?: string;
+  };
+  message?: string; // the exact message to sign
   nonce?: string;
 }
 
@@ -65,6 +69,16 @@ export interface WalletStatusResponse {
   };
 }
 
+function getChallengeMessage(response: WalletChallengeResponse): string {
+  const message = response.data?.message ?? response.message;
+
+  if (!message) {
+    throw new Error("Wallet challenge did not include a message to sign.");
+  }
+
+  return message;
+}
+
 // ─── SIWE (Sign-In With Ethereum)
 // Used when the wallet IS the login method (no email/password)
 
@@ -74,8 +88,7 @@ export async function getSiweChallenge(address: string): Promise<string> {
     `/auth/wallet/challenge`,
     { params: { address } },
   );
-  // Backend returns { success, data: { message, nonce } }
-  return (data as any).data?.message ?? (data as any).message;
+  return getChallengeMessage(data);
 }
 
 /** Step 3: Verify signature → logs in or registers the user */
@@ -102,7 +115,7 @@ export async function getWalletChallenge(address: string): Promise<string> {
     params: { address },
     data: { address },
   });
-  return (data as any).data?.message ?? (data as any).message;
+  return getChallengeMessage(data);
 }
 
 /** Step 3: Connect wallet to existing account */

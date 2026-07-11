@@ -15,6 +15,23 @@ interface UseSiweLoginReturn {
   clearError: () => void;
 }
 
+function getErrorDetails(error: unknown): {
+  code?: number;
+  name?: string;
+  message?: string;
+} {
+  if (typeof error === "object" && error !== null) {
+    const record = error as Record<string, unknown>;
+    return {
+      code: typeof record.code === "number" ? record.code : undefined,
+      name: typeof record.name === "string" ? record.name : undefined,
+      message: typeof record.message === "string" ? record.message : undefined,
+    };
+  }
+
+  return {};
+}
+
 export function useSiweLogin(): UseSiweLoginReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,13 +86,14 @@ export function useSiweLogin(): UseSiweLoginReturn {
 
       // Step 6: Store user and redirect
       setUser(user);
-    } catch (err: any) {
-      if (err?.code === 4001 || err?.name === "UserRejectedRequestError") {
+    } catch (err: unknown) {
+      const details = getErrorDetails(err);
+      if (details.code === 4001 || details.name === "UserRejectedRequestError") {
         setError("Signature rejected. Please try again.");
-      } else if (err?.name === "SwitchChainError") {
+      } else if (details.name === "SwitchChainError") {
         setError("Please switch to Base Sepolia in your wallet and try again.");
       } else {
-        setError(err?.message || "Wallet login failed.");
+        setError(details.message || "Wallet login failed.");
       }
     } finally {
       inFlightRef.current = false;
