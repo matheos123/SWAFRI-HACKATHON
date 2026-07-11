@@ -94,10 +94,10 @@ export async function verifySiweSignature(
 
 /** Step 1: Get the challenge message for wallet linking */
 export async function getWalletChallenge(address: string): Promise<string> {
-  // The wallet/challenge endpoint expects address in the request body, not as a query param
+  // The wallet/challenge endpoint expects address as a query param
   const { data } = await apiClient.get<WalletChallengeResponse>(
     `/wallet/challenge`,
-    { data: { address } },
+    { params: { address } },
   );
   return (data as any).data?.message ?? (data as any).message;
 }

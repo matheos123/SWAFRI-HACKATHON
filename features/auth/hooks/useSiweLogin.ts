@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -17,6 +17,10 @@ interface UseSiweLoginReturn {
 export function useSiweLogin(): UseSiweLoginReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ref guard: prevents two concurrent loginWithWallet calls from producing
+  // duplicate challenge fetches. If both a button click and the auto-effect
+  // fire at the same time, the second one bails out before requesting a nonce.
+  const inFlightRef = useRef(false);
 
   const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -24,6 +28,9 @@ export function useSiweLogin(): UseSiweLoginReturn {
   const { setUser } = useAuthStore();
 
   const loginWithWallet = async () => {
+    // Bail if already in progress
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -31,8 +38,7 @@ export function useSiweLogin(): UseSiweLoginReturn {
       // Step 1: If no wallet connected, open RainbowKit modal first
       if (!isConnected || !address) {
         openConnectModal?.();
-        // loginWithWallet will be re-triggered by the UI after connection
-        setIsLoading(false);
+        // loginWithWallet will be re-triggered by the auto-effect after connection
         return;
       }
 
@@ -58,6 +64,7 @@ export function useSiweLogin(): UseSiweLoginReturn {
         setError(err?.message || "Wallet login failed.");
       }
     } finally {
+      inFlightRef.current = false;
       setIsLoading(false);
     }
   };
