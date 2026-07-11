@@ -43,7 +43,7 @@ export default function Navbar({
             onClick={() => router.push("/dashboard")}
             className="flex items-center gap-2 cursor-pointer group"
           >
-            <div className="relative w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
               <Shield className="w-4.5 h-4.5 text-white" />
             </div>
             <span className="font-sans font-black tracking-[0.2em] text-lg text-white uppercase select-none">
@@ -61,7 +61,7 @@ export default function Navbar({
                   ? "bg-amber-600/30 border border-amber-500/30 text-amber-200 animate-pulse"
                   : matchmakingStatus === "matched"
                     ? "bg-emerald-600/30 border border-emerald-500/30 text-emerald-200"
-                    : "bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)]"
+                    : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-[#070B13] hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.25)]"
               }`}
             >
               {isQueued ? "In Queue... (Cancel)" : matchmakingStatus === "matched" ? "Match Found!" : "Find Match"}
@@ -78,7 +78,7 @@ export default function Navbar({
               onClick={() => router.push("/profile")}
               className="flex items-center gap-2 px-3 h-10 rounded-lg border border-gray-800 bg-[#101726] hover:border-gray-700 transition-colors"
             >
-              <div className="w-6 h-6 rounded-full bg-linear-to-br from-cyan-500/30 to-indigo-500/30 border border-cyan-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-300 uppercase">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 border border-cyan-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-300 uppercase">
                 {user.username[0]}
               </div>
               <span className="text-xs font-mono text-gray-300 font-semibold">{user.username}</span>
@@ -167,7 +167,7 @@ export default function Navbar({
                   ? "bg-amber-600 border-amber-400 animate-pulse shadow-amber-500/20"
                   : matchmakingStatus === "matched"
                     ? "bg-emerald-600 border-emerald-400 shadow-emerald-500/20"
-                    : "bg-linear-to-b from-cyan-400 to-blue-600 border-cyan-300 shadow-cyan-500/30"
+                    : "bg-gradient-to-b from-cyan-400 to-blue-600 border-cyan-300 shadow-cyan-500/30"
               }`}
             >
               <Swords className={`w-6 h-6 ${isQueued ? "animate-spin" : ""}`} />
