@@ -43,7 +43,7 @@ interface AppStateContextValue {
   // Handlers
   handleOpenTxDetail: (match: Match) => void;
   handleTriggerFindMatch: () => void;
-  handleConnectWallet: (address: string) => void;
+  handleConnectWallet: () => void;
   handleDisconnectWallet: () => void;
   handleLogout: () => void;
 }
@@ -87,15 +87,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setIsQueueActive(true);
   };
 
-  // Wallet handlers — will call backend wallet endpoints when available
-  const handleConnectWallet = (address: string) => {
-    // TODO: call PATCH /auth/wallet endpoint when available
-    console.log("Wallet connect:", address);
+  // Wallet handlers — WalletModal handles connect/disconnect UI
+  const handleConnectWallet = () => {
+    setIsWalletModalOpen(true);
   };
 
   const handleDisconnectWallet = () => {
-    // TODO: call wallet disconnect endpoint when available
-    console.log("Wallet disconnect");
+    setIsWalletModalOpen(true);
   };
 
   const handleLogout = () => {

@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "https://rps-arena-2q2f.onrender.com/api/v1",
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://rps-arena-2q2f.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },

@@ -81,8 +81,8 @@ export default function Web3Providers() {
             </span>
             <span className="text-[10px] text-slate-500 font-mono">
               {isConnected && address
-                ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                : "No wallet required — create account on first sign"}
+                ? `${address.slice(0, 6)}...${address.slice(-4)} · Base Sepolia`
+                : "Base Sepolia · auto-creates account on first sign"}
             </span>
           </div>
         </div>

@@ -1,17 +1,14 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { mainnet, polygon, sepolia } from "wagmi/chains";
 import { http } from "wagmi";
+import { SUPPORTED_CHAIN } from "@/shared/lib/chain";
 
 export const wagmiConfig = getDefaultConfig({
   appName: "RPS Arena",
   projectId:
     process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "rps-arena-dev",
-  chains: [mainnet, polygon, sepolia],
+  chains: [SUPPORTED_CHAIN],
   transports: {
-    // Use public RPC endpoints that allow CORS from any origin
-    [mainnet.id]: http("https://cloudflare-eth.com"),
-    [polygon.id]: http("https://polygon-rpc.com"),
-    [sepolia.id]: http("https://rpc.sepolia.org"),
+    [SUPPORTED_CHAIN.id]: http("https://sepolia.base.org"),
   },
   ssr: true,
 });

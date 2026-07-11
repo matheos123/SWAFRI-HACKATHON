@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount, useChainId, useSignMessage, useSwitchChain } from "wagmi";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { SUPPORTED_CHAIN } from "@/shared/lib/chain";
 import {
   getWalletChallenge,
   connectWallet,
@@ -20,7 +21,9 @@ export function useSiweAuth(): UseSiweAuthReturn {
   const [error, setError] = useState<string | null>(null);
 
   const { address } = useAccount();
+  const chainId = useChainId();
   const { signMessageAsync } = useSignMessage();
+  const { switchChainAsync } = useSwitchChain();
   const { setUser } = useAuthStore();
 
   const verifyAndLink = async () => {
@@ -36,19 +39,24 @@ export function useSiweAuth(): UseSiweAuthReturn {
     const normalizedAddress = address;
 
     try {
-      // Step 1: Get challenge message from backend
+      // Step 1: Ensure wallet is on Base Sepolia
+      if (chainId !== SUPPORTED_CHAIN.id) {
+        await switchChainAsync({ chainId: SUPPORTED_CHAIN.id });
+      }
+
+      // Step 2: Get challenge message from backend
       const message = await getWalletChallenge(normalizedAddress);
 
-      // Step 2: Sign with connected wallet
+      // Step 3: Sign with connected wallet
       const signature = await signMessageAsync({ message });
 
-      // Step 3: Send to backend to link wallet to account
+      // Step 4: Send to backend to link wallet to account
       const result = await connectWallet({
         walletAddress: normalizedAddress,
         signature,
       });
 
-      // Step 4: Update store with new wallet info
+      // Step 5: Update store with new wallet info
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
         setUser({
@@ -61,6 +69,8 @@ export function useSiweAuth(): UseSiweAuthReturn {
     } catch (err: any) {
       if (err?.code === 4001 || err?.name === "UserRejectedRequestError") {
         setError("Signature request rejected. Please try again.");
+      } else if (err?.name === "SwitchChainError") {
+        setError("Please switch to Base Sepolia in your wallet and try again.");
       } else {
         setError(err?.message || "Wallet verification failed.");
       }

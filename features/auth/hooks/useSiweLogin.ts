@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount, useChainId, useSignMessage, useSwitchChain } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { SUPPORTED_CHAIN } from "@/shared/lib/chain";
 import {
   getSiweChallenge,
   verifySiweSignature,
@@ -23,7 +24,9 @@ export function useSiweLogin(): UseSiweLoginReturn {
   const inFlightRef = useRef(false);
 
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const { signMessageAsync } = useSignMessage();
+  const { switchChainAsync } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
   const { setUser } = useAuthStore();
 
@@ -37,29 +40,39 @@ export function useSiweLogin(): UseSiweLoginReturn {
     try {
       // Step 1: If no wallet connected, open RainbowKit modal first
       if (!isConnected || !address) {
-        openConnectModal?.();
+        if (!openConnectModal) {
+          throw new Error("Wallet connection is unavailable. Refresh and try again.");
+        }
+        openConnectModal();
         // loginWithWallet will be re-triggered by the auto-effect after connection
         return;
       }
 
-      // Step 2: Get challenge message from backend
+      // Step 2: Ensure wallet is on Base Sepolia (backend SIWE chain)
+      if (chainId !== SUPPORTED_CHAIN.id) {
+        await switchChainAsync({ chainId: SUPPORTED_CHAIN.id });
+      }
+
+      // Step 3: Get challenge message from backend
       const normalizedAddress = address;
       const message = await getSiweChallenge(normalizedAddress);
 
-      // Step 3: Sign the challenge with wagmi
+      // Step 4: Sign the challenge with wagmi
       const signature = await signMessageAsync({ message });
 
-      // Step 4: Verify with backend → creates/logs in user, sets cookie
+      // Step 5: Verify with backend → creates/logs in user, sets cookie
       const user = await verifySiweSignature({
         address: normalizedAddress,
         signature,
       });
 
-      // Step 5: Store user and redirect
+      // Step 6: Store user and redirect
       setUser(user);
     } catch (err: any) {
       if (err?.code === 4001 || err?.name === "UserRejectedRequestError") {
         setError("Signature rejected. Please try again.");
+      } else if (err?.name === "SwitchChainError") {
+        setError("Please switch to Base Sepolia in your wallet and try again.");
       } else {
         setError(err?.message || "Wallet login failed.");
       }

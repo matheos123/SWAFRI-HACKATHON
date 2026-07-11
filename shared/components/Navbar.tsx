@@ -116,8 +116,8 @@ export default function Navbar({
           {/* Wallet */}
           {user.walletAddress ? (
             <button
-              onClick={onDisconnectWallet}
-              title="Click to disconnect wallet"
+              onClick={onOpenWallet}
+              title="Manage connected wallet"
               className="flex items-center gap-2 px-3.5 h-10 rounded-lg border border-cyan-500/25 bg-cyan-950/20 text-cyan-400 text-xs font-mono font-bold tracking-wide hover:bg-rose-950/20 hover:border-rose-500/30 hover:text-rose-400 transition-all duration-300"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
