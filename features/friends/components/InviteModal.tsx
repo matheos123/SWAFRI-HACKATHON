@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Search, UserPlus, Loader2, CheckCircle } from "lucide-react";
 import { getUserById, getLeaderboardUsers, sendFriendRequest, FriendUser } from "../api/friends.api";
-
+import apiClient from "@/shared/lib/axios";
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,35 +18,47 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const [invitedIds, setInvitedIds] = useState<Set<string>>(new Set());
   const [inviteLoadingId, setInviteLoadingId] = useState<string | null>(null);
 
-  // Fetch leaderboard users when modal opens to populate initial list
+  // Replace the whole useEffect for fetching with this:
+
   useEffect(() => {
     if (!isOpen) return;
 
-    const fetchLeaderboard = async () => {
+    const fetchUsers = async () => {
       setLoading(true);
       setError(null);
+
       try {
-        const lb = await getLeaderboardUsers(50, 0);
-        const mapped: FriendUser[] = lb.map((u) => ({
-          id: u.userId,
+        // Direct call to the correct endpoint
+        const response = await apiClient.get("/users/public", {
+          params: { limit: 50, offset: 0 },
+        });
+
+        // Handle the nested structure from the live API
+        const userArray = response.data?.data?.data || [];
+
+        const mapped: FriendUser[] = userArray.map((u: any) => ({
+          id: u.id,
           username: u.username,
-          avatar: u.avatar,
-          walletAddress: u.walletAddress,
-          wins: u.wins,
-          losses: u.losses,
-          totalMatches: u.totalMatches,
-          points: u.points,
+          avatar: u.avatar || null,
+          walletAddress: u.walletAddress || null,
+          wins: u.wins || 0,
+          losses: u.losses || 0,
+          totalMatches: u.totalMatches || 0,
+          points: u.points || 0,
         }));
+
+        console.log("✅ Loaded users:", mapped.length); 
         setLeaderboardUsers(mapped);
         setDisplayedUsers(mapped);
-      } catch (err) {
-        // It's okay if it fails, maybe show an error
+      } catch (err: any) {
+        console.error("Fetch error:", err);
+        setError("Failed to load players. Try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLeaderboard();
+    fetchUsers();
   }, [isOpen]);
 
   // Handle search (client-side filter + exact ID lookup via API)
@@ -60,11 +72,12 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
       return;
     }
 
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
     const executeSearch = async () => {
       let results = leaderboardUsers.filter((u) =>
-        u.username.toLowerCase().includes(query.toLowerCase())
+        u.username.toLowerCase().includes(query.toLowerCase()),
       );
 
       // If it looks like a User ID, try to fetch it directly
@@ -140,7 +153,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                 Invite Operator
               </h3>
               <button
-              aria-label="Close modal"
+                aria-label="Close modal"
                 onClick={handleClose}
                 className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
               >
@@ -210,7 +223,8 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                             {user.username}
                           </p>
                           <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                            {user.points?.toLocaleString() ?? 0} pts · {user.wins ?? 0}W {user.losses ?? 0}L
+                            {user.points?.toLocaleString() ?? 0} pts ·{" "}
+                            {user.wins ?? 0}W {user.losses ?? 0}L
                           </p>
                         </div>
                       </div>

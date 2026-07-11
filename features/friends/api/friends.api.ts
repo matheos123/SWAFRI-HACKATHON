@@ -50,11 +50,34 @@ export interface LeaderboardUser {
   totalMatches: number;
   points: number;
 }
-export async function getUsersForInvite({ limit = 50, search }: { limit?: number; search?: string }) {
-  const { data } = await apiClient.get("/users/public", {
-    params: { limit, search },
-  });
-  return data.data; // { data: FriendUser[], total, ... }
+// In ../api/friends.api.ts
+export async function getUsersForInvite(params: { limit?: number; search?: string } = {}) {
+  try {
+    const { data } = await apiClient.get("/users/public", { 
+      params: { 
+        limit: params.limit || 50, 
+        search: params.search || undefined,
+        page: 1 
+      }
+    });
+
+    // Handle multiple possible response shapes
+    if (data?.data?.data) {
+      return data.data;           // nested {data, total, ...}
+    }
+    if (Array.isArray(data?.data)) {
+      return { data: data.data };
+    }
+    if (Array.isArray(data)) {
+      return { data };
+    }
+
+    console.warn("Unexpected users response shape:", data);
+    return { data: [] };
+  } catch (error: any) {
+    console.error("Failed to fetch users:", error.response?.data || error.message);
+    throw error;
+  }
 }
 
 /** GET /leaderboard — fetch ranked players to list in invite modal */
