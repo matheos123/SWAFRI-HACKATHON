@@ -1,10 +1,12 @@
 "use client";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Wallet, ShieldAlert, CheckCircle, Loader2 } from "lucide-react";
+import { X, Wallet, ShieldAlert, CheckCircle, Loader2, Unlink } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import { useSiweAuth } from "@/features/auth/hooks/useSiweAuth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { disconnectWallet } from "@/features/wallet/api/wallet.api";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -16,9 +18,14 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { address, isConnected } = useAccount();
   const { isConnecting, error, verifyAndLink, clearError } = useSiweAuth();
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
 
   const handleClose = () => {
     clearError();
+    setDisconnectError(null);
     onClose();
   };
 
@@ -31,7 +38,30 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     }
   };
 
-  // Already connected on backend — just close
+  const handleDisconnect = async () => {
+    setIsDisconnecting(true);
+    setDisconnectError(null);
+    try {
+      await disconnectWallet();
+      // Clear wallet fields from store without logging the user out
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        setUser({
+          ...currentUser,
+          walletAddress: null,
+          blockchainProfileId: null,
+          walletVerifiedAt: null,
+        });
+      }
+      onClose();
+    } catch (err: any) {
+      setDisconnectError(err?.message || "Failed to disconnect wallet.");
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
+  // Already connected on backend — show address + disconnect option
   if (user?.walletAddress) {
     return (
       <AnimatePresence>
@@ -50,20 +80,61 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md rounded-2xl border border-cyan-500/30 bg-[#0E131F]/95 p-6 shadow-2xl text-center"
             >
+              {/* Corner accents */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400" />
+
+              {/* Close button */}
+              <button
+                onClick={handleClose}
+                className="absolute top-4 right-4 rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
               <CheckCircle className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
               <h3 className="text-white font-bold font-sans tracking-wide uppercase mb-1">
                 Wallet Connected
               </h3>
-              <p className="text-xs text-gray-400 font-mono">
-                {user.walletAddress.slice(0, 6)}...
-                {user.walletAddress.slice(-4)}
+              <p className="text-xs text-gray-400 font-mono mb-5">
+                {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
               </p>
-              <button
-                onClick={handleClose}
-                className="mt-5 w-full py-2.5 rounded-xl border border-cyan-500/30 text-cyan-300 text-xs font-bold tracking-widest uppercase hover:bg-cyan-500/10 transition-colors"
-              >
-                Close
-              </button>
+
+              {/* Disconnect error */}
+              {disconnectError && (
+                <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
+                  {disconnectError}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleDisconnect}
+                  disabled={isDisconnecting}
+                  className="w-full py-2.5 rounded-xl border border-rose-500/40 bg-rose-950/20 text-rose-400 text-xs font-bold tracking-widest uppercase hover:bg-rose-500/20 hover:border-rose-500/60 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isDisconnecting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Disconnecting...
+                    </>
+                  ) : (
+                    <>
+                      <Unlink className="w-3.5 h-3.5" />
+                      Disconnect Wallet
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="w-full py-2.5 rounded-xl border border-slate-700/50 text-slate-400 text-xs font-bold tracking-widest uppercase hover:bg-slate-800/40 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
