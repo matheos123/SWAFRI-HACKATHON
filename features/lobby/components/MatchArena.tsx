@@ -3,13 +3,14 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { useGameStore, Move } from "@/features/game/store/game.store";
 import { useGameSocket } from "@/features/game/hooks/useGameSocket";
 import { useSocketStore } from "@/features/game/store/socket.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
-
+import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 // Timer hooks
 
 function useRoundTimer(active: boolean, seconds = 30) {
@@ -52,6 +53,8 @@ function useQueueTimer(active: boolean) {
 
 export default function MatchArena() {
   const { user } = useAuthStore();
+  const { squad } = useSquadStore();   // For squad check
+
   const {
     roomId,
     matchId,
@@ -90,7 +93,7 @@ export default function MatchArena() {
     scissors: "/scissors-icon.png",
   };
 
-  // ── Matchmaking / Idle Menu ──
+  // Matchmaking / Idle Menu 
   if (!matchId) {
     return (
       <div className="w-full rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 shadow-xl relative overflow-hidden text-center min-h-[300px] flex flex-col justify-center">
@@ -388,6 +391,18 @@ export default function MatchArena() {
           </p>
         </div>
       )}
+      {/* Chat Sidebar - Only if user has a squad */}
+      <div className="xl:col-span-4">
+        {squad ? (
+          <LiveChatPanel gameRoomId={roomId!} isSpectator={isSpectating} />
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-8 text-center">
+            <Shield className="w-12 h-12 text-slate-600 mb-4" />
+            <p className="text-slate-400">Squad Chat Unavailable</p>
+            <p className="text-[10px] text-slate-600 mt-2">Join or create a squad to chat during matches</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

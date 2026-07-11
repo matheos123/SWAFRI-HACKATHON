@@ -14,7 +14,7 @@ function SpectatorPanel() {
 
   useEffect(() => {
     fetchRooms();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl">
@@ -100,8 +100,8 @@ export default function LobbyPage() {
       <div className="xl:col-span-1 space-y-6 h-full flex flex-col">
         {/* <PlayerStatsPanel /> */}
         <SpectatorPanel />
-        <LiveChatPanel />
-      </div>
+        <LiveChatPanel  />
+          </div>
     </div>
   );
 }
