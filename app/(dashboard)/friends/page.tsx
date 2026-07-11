@@ -33,9 +33,11 @@ export default function FriendsPage() {
     blockRequest,
     removeFriend,
     declineGameInvite,
+    loadOutgoingRequests,
+    outgoingRequests,
   } = useFriendsStore();
   const { setMatchData } = useSocketStore();
-  
+
   const {
     squad,
     squadMembers,
@@ -48,11 +50,14 @@ export default function FriendsPage() {
   } = useSquadStore();
 
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"friends" | "requests" | "squad">("squad");
+  const [activeTab, setActiveTab] = useState<"friends" | "requests" | "squad">(
+    "squad",
+  );
 
   useEffect(() => {
     loadFriends();
     loadRequests();
+    loadOutgoingRequests();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAcceptInvite = (invite: any) => {
@@ -60,7 +65,7 @@ export default function FriendsPage() {
       roomId: invite.roomId,
       matchId: invite.matchId,
       isRanked: invite.isRanked ?? false,
-      opponent: { userId: invite.senderId, username: invite.username }
+      opponent: { userId: invite.senderId, username: invite.username },
     });
     declineGameInvite(invite.id);
     router.push(`/match/${invite.matchId}`);
@@ -268,7 +273,8 @@ export default function FriendsPage() {
                                   {invite.username}
                                 </p>
                                 <p className="text-[10px] text-cyan-400 font-mono mt-0.5">
-                                  invited you to a battle match {invite.isRanked ? " (Ranked)" : ""}
+                                  invited you to a battle match{" "}
+                                  {invite.isRanked ? " (Ranked)" : ""}
                                 </p>
                               </div>
                             </div>
@@ -295,59 +301,125 @@ export default function FriendsPage() {
                   )}
 
                   {/* Friend Requests */}
-                  {requests.length > 0 && (
-                    <div className="space-y-2">
-                      <h3 className="text-[10px] font-mono text-gray-500 uppercase tracking-widest px-2">
-                        Squad Command Requests
-                      </h3>
-                      <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden divide-y divide-gray-900/40">
-                        {requests.map((r) => (
-                          <motion.div
-                            key={r.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex items-center justify-between px-5 py-4"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm font-mono font-bold text-indigo-300 uppercase">
-                                {r.avatar ? (
-                                  <img
-                                    src={r.avatar}
-                                    alt={r.username}
-                                    className="w-full h-full object-cover rounded-xl"
-                                  />
-                                ) : (
-                                  r.username[0]
-                                )}
-                              </div>
-                              <div>
-                                <p className="text-xs font-bold text-white uppercase tracking-wider">
-                                  {r.username}
-                                </p>
-                                <p className="text-[10px] text-gray-500 font-mono mt-0.5">
-                                  wants to join your squad
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => acceptRequest(r.id)}
-                                className="p-2 rounded-xl border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/20 transition-colors"
-                                title="Accept"
+                  {/* Requests tab */}
+                  {activeTab === "requests" && (
+                    <div className="space-y-8">
+                      {/* Incoming Friend Requests */}
+                      {requests.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-[10px] font-mono text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5" />
+                            INCOMING REQUESTS
+                          </h3>
+                          <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden divide-y divide-gray-900/40">
+                            {requests.map((r) => (
+                              <motion.div
+                                key={r.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex items-center justify-between px-5 py-4 hover:bg-[#101726]/30"
                               >
-                                <UserCheck className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => blockRequest(r.id)}
-                                className="p-2 rounded-xl border border-gray-700 text-gray-500 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
-                                title="Block"
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-sm font-mono font-bold text-indigo-300 uppercase">
+                                    {r.avatar ? (
+                                      <img
+                                        src={r.avatar}
+                                        alt={r.username}
+                                        className="w-full h-full object-cover rounded-xl"
+                                      />
+                                    ) : (
+                                      r.username[0]
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                      {r.username}
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 font-mono">
+                                      wants to join your squad
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => acceptRequest(r.id)}
+                                    className="p-2 rounded-xl border border-cyan-500/30 text-cyan-400 hover:bg-cyan-950/20 transition-colors"
+                                    title="Accept"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => blockRequest(r.id)}
+                                    className="p-2 rounded-xl border border-gray-700 text-gray-500 hover:text-rose-400 hover:border-rose-500/30 transition-colors"
+                                    title="Block"
+                                  >
+                                    <UserX className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Outgoing Friend Requests */}
+                      {outgoingRequests.length > 0 && (
+                        <div className="space-y-3">
+                          <h3 className="text-[10px] font-mono text-gray-400 uppercase tracking-widest px-1 flex items-center gap-2">
+                            <UserPlus className="w-3.5 h-3.5" />
+                            OUTGOING REQUESTS
+                          </h3>
+                          <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden divide-y divide-gray-900/40">
+                            {outgoingRequests.map((r) => (
+                              <motion.div
+                                key={r.id}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex items-center justify-between px-5 py-4 hover:bg-[#101726]/30"
                               >
-                                <UserX className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-sm font-mono font-bold text-emerald-300 uppercase">
+                                    {r.avatar ? (
+                                      <img
+                                        src={r.avatar}
+                                        alt={r.username}
+                                        className="w-full h-full object-cover rounded-xl"
+                                      />
+                                    ) : (
+                                      r.username[0]
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-white uppercase tracking-wider">
+                                      {r.username}
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 font-mono">
+                                      Request sent • Pending
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <span className="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 font-mono border border-amber-500/20">
+                                  Pending
+                                </span>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Empty State */}
+                      {requests.length === 0 &&
+                        outgoingRequests.length === 0 &&
+                        gameInvites.length === 0 && (
+                          <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-12 text-center">
+                            <Clock className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+                            <p className="text-sm text-gray-500 font-mono">
+                              No pending requests or invitations.
+                            </p>
+                          </div>
+                        )}
                     </div>
                   )}
                 </>

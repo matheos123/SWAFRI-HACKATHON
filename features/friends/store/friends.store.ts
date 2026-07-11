@@ -6,6 +6,7 @@ import {
   removeFriend,
   Friendship,
   FriendRequest,
+  getOutgoingFriendRequests,
 } from "../api/friends.api";
 
 export interface GameInvite {
@@ -24,6 +25,9 @@ interface FriendsState {
   gameInvites: GameInvite[];
   isLoading: boolean;
   error: string | null;
+  outgoingRequests: FriendRequest[]; 
+
+  loadOutgoingRequests: () => Promise<void>;
 
   loadFriends: () => Promise<void>;
   loadRequests: () => Promise<void>;
@@ -41,6 +45,7 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
   gameInvites: [],
   isLoading: false,
   error: null,
+  outgoingRequests: [],
 
   loadFriends: async () => {
     set({ isLoading: true, error: null });
@@ -100,5 +105,14 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
     set((s) => ({
       gameInvites: s.gameInvites.filter((i) => i.id !== inviteId),
     }));
+  },
+  loadOutgoingRequests: async () => {
+    try {
+      const outgoing = await getOutgoingFriendRequests();
+      set({ outgoingRequests: outgoing });
+    } catch (err) {
+      console.error("Failed to load outgoing requests:", err);
+      set({ outgoingRequests: [] });
+    }
   },
 }));

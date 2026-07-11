@@ -23,13 +23,13 @@ export interface Friendship {
 
 export interface FriendRequest {
   id: string;
-  requesterId: string;
+  requesterId?: string;
+  addresseeId?: string; // for outgoing
   username: string;
   avatar: string | null;
   createdAt: string;
-  // status?: string; // if you need it later
+  status?: "PENDING" | "ACCEPTED" | "BLOCKED";
 }
-
 //  Endpoints 
 
 /** GET /users/:id — preview a user before sending a request */
@@ -133,4 +133,21 @@ export async function getFriendRequests(): Promise<FriendRequest[]> {
 /** DELETE /friends/:friendId */
 export async function removeFriend(friendId: string): Promise<void> {
   await apiClient.delete(`/friends/${friendId}`);
+}
+
+/** GET /friends/requests/outgoing — list of sent friend requests */
+export async function getOutgoingFriendRequests(): Promise<FriendRequest[]> {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: any[];           // raw array
+  }>("/friends/requests/outgoing");
+
+  return (data.data || []).map((req: any) => ({
+    id: req.id,
+    addresseeId: req.addresseeId,
+    username: req.addressee?.username || "Unknown",
+    avatar: req.addressee?.avatar || null,
+    createdAt: req.createdAt,
+    status: req.status,
+  }));
 }

@@ -13,22 +13,12 @@ export default function Web3Providers() {
   const { isLoading, error, loginWithWallet, clearError } = useSiweLogin();
   const user = useAuthStore((s) => s.user);
 
-  // After SIWE login sets user in store, redirect to lobby
+  // Redirect after successful SIWE login
   useEffect(() => {
     if (user) {
       router.push("/lobby");
     }
   }, [user, router]);
-
-  // If wallet just connected (RainbowKit modal closed with connection),
-  // auto-proceed to sign the challenge
-  useEffect(() => {
-    if (isConnected && address && !isLoading && !user) {
-      // Small delay to ensure wagmi state is settled
-      const t = setTimeout(() => loginWithWallet(), 300);
-      return () => clearTimeout(t);
-    }
-  }, [isConnected, address]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-2.5">
@@ -105,7 +95,7 @@ export default function Web3Providers() {
         )}
       </button>
 
-      {/* WalletConnect button */}
+      {/* Other Wallets */}
       <button
         onClick={loginWithWallet}
         disabled={isLoading}
