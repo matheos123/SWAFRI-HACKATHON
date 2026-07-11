@@ -12,6 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useFriendsStore } from "@/features/friends/store/friends.store";
+import type { GameInvite } from "@/features/friends/store/friends.store";
 import InviteModal from "@/features/friends/components/InviteModal";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useSocketStore } from "@/features/game/store/socket.store";
@@ -60,7 +61,7 @@ export default function FriendsPage() {
     loadOutgoingRequests();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleAcceptInvite = (invite: any) => {
+  const handleAcceptInvite = (invite: GameInvite) => {
     setMatchData({
       roomId: invite.roomId,
       matchId: invite.matchId,
@@ -69,6 +70,18 @@ export default function FriendsPage() {
     });
     declineGameInvite(invite.id);
     router.push(`/match/${invite.matchId}`);
+  };
+
+  const handleInitializeSquad = (
+    name: string,
+    privacy: "Public" | "Encrypted",
+  ) => {
+    if (!user) return;
+
+    initializeSquad(name, privacy, {
+      id: user.id,
+      username: user.username,
+    });
   };
 
   if (!user) return null;
@@ -172,7 +185,7 @@ export default function FriendsPage() {
               onKickMember={kickMember}
               onToggleMute={toggleMute}
               onDisbandSquad={disbandSquad}
-              onInitializeSquad={initializeSquad}
+              onInitializeSquad={handleInitializeSquad}
             />
           )}
 

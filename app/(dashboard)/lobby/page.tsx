@@ -8,9 +8,19 @@ import LeaderboardPanel from "@/features/leaderboard/components/LeaderboardPanel
 // import PlayerStatsPanel from "@/features/leaderboard/PlayerStatusPanel";
 import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
 import { useSpectator } from "@/features/game/hooks/useSpectator";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 
 function SpectatorPanel() {
   const { rooms, isLoading, fetchRooms, joinAsSpectator } = useSpectator();
+  const { squad, squadMembers } = useSquadStore();
+  const squadMemberIds = new Set(squadMembers.map((member) => member.id));
+  const squadRooms = squad
+    ? rooms.filter(
+        (room) =>
+          squadMemberIds.has(room.player1.userId) ||
+          squadMemberIds.has(room.player2.userId),
+      )
+    : [];
 
   useEffect(() => {
     fetchRooms();
@@ -37,13 +47,17 @@ function SpectatorPanel() {
         <div className="flex justify-center py-4">
           <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
         </div>
-      ) : rooms.length === 0 ? (
+      ) : !squad ? (
         <p className="text-[10px] text-slate-600 font-mono text-center py-4">
-          No active battles right now.
+          Join a squad to watch squad member battles.
+        </p>
+      ) : squadRooms.length === 0 ? (
+        <p className="text-[10px] text-slate-600 font-mono text-center py-4">
+          No squad members are battling right now.
         </p>
       ) : (
         <div className="space-y-2">
-          {rooms.map((room) => (
+          {squadRooms.map((room) => (
             <div
               key={room.roomId}
               className="flex items-center justify-between p-3 rounded-lg border border-slate-800/60 bg-[#0a0d14]/60"

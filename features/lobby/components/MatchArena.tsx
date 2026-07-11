@@ -71,15 +71,22 @@ export default function MatchArena() {
     isSpectating,
     player1,
     player2,
+    initGame,
     resetGame,
   } = useGameStore();
 
-  const { resetMatchmaking } = useSocketStore();
+  const { matchData, resetMatchmaking } = useSocketStore();
   const { isQueued, queuePosition, joinQueue, cancelQueue } = useMatchmaking();
   const { submitMove, requestRematch } = useGameSocket(roomId ?? "");
 
   const timeLeft = useRoundTimer(phase === "selecting" && !isSpectating, 30);
   const queueTimer = useQueueTimer(isQueued);
+
+  useEffect(() => {
+    if (matchData && matchData.matchId !== matchId) {
+      initGame(matchData);
+    }
+  }, [initGame, matchData, matchId]);
 
   const MOVE_ACTIONS: { name: Move; label: string; src: string }[] = [
     { name: "rock", label: "Rock", src: "/rock-icon.png" },
@@ -201,6 +208,18 @@ export default function MatchArena() {
         </div>
 
         <div className="max-w-xs mx-auto w-full">
+          {isSpectating && !isDraw && (
+            <button
+              onClick={() => {
+                resetGame();
+                resetMatchmaking();
+                joinQueue();
+              }}
+              className="mb-3 w-full py-3 rounded-xl bg-[#A5C3F9] text-[#0A0F1D] text-xs font-black tracking-widest uppercase hover:bg-[#B7D2FC] transition-colors"
+            >
+              Challenge Winner
+            </button>
+          )}
           <button
             onClick={handleLeave}
             className="w-full py-3 rounded-xl border border-slate-700 text-slate-400 text-xs font-bold tracking-widest uppercase hover:bg-slate-800/40 transition-colors flex items-center justify-center gap-2"
@@ -394,7 +413,7 @@ export default function MatchArena() {
       {/* Chat Sidebar - Only if user has a squad */}
       <div className="xl:col-span-4">
         {squad ? (
-          <LiveChatPanel gameRoomId={roomId!} isSpectator={isSpectating} />
+          <LiveChatPanel title={isSpectating ? "Squad Watch Chat" : "Squad Battle Chat"} />
         ) : (
           <div className="h-full flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-8 text-center">
             <Shield className="w-12 h-12 text-slate-600 mb-4" />

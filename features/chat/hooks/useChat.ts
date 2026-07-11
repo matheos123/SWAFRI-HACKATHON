@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getSocket } from "@/shared/lib/socket";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useSquadStore } from "@/features/friends/store/squad.store";
 
 export interface ChatMessage {
   id: string;
@@ -13,21 +14,41 @@ export interface ChatMessage {
 
 export function useChat(defaultRoomId: string = "lobby") {
   const { user } = useAuthStore();
+  const isMemberOfSquadRoom = useSquadStore((state) => state.isMemberOfSquadRoom);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentRoom, setCurrentRoom] = useState(defaultRoomId);
+  const [error, setError] = useState<string | null>(null);
+
+  const canUseRoom = useCallback(
+    (roomId: string) => {
+      if (!roomId.startsWith("squad-")) return false;
+      return isMemberOfSquadRoom(roomId, user?.id);
+    },
+    [isMemberOfSquadRoom, user?.id],
+  );
 
   const joinRoom = useCallback((roomId: string) => {
     if (!roomId) return;
+    if (!canUseRoom(roomId)) {
+      setError("You can only chat inside squads you belong to.");
+      return;
+    }
+
+    setError(null);
     setCurrentRoom(roomId);
     setMessages([]); // Clear previous messages
 
     const socket = getSocket();
     socket.emit("chat:join", { roomId });
-  }, []);
+  }, [canUseRoom]);
 
   const sendMessage = useCallback(
     (content: string) => {
       if (!user || !content.trim() || !currentRoom) return;
+      if (!canUseRoom(currentRoom)) {
+        setError("You can only chat inside squads you belong to.");
+        return;
+      }
 
       const socket = getSocket();
       socket.emit("chat:message", {
@@ -37,11 +58,12 @@ export function useChat(defaultRoomId: string = "lobby") {
         content: content.trim(),
       });
     },
-    [user, currentRoom],
+    [canUseRoom, user, currentRoom],
   );
 
   useEffect(() => {
     if (!user || !currentRoom) return;
+    if (!canUseRoom(currentRoom)) return;
 
     const socket = getSocket();
 
@@ -69,12 +91,14 @@ export function useChat(defaultRoomId: string = "lobby") {
       socket.off("chat:joined", onJoined);
       socket.off("chat:message", onMessage);
     };
-  }, [user, currentRoom]);
+  }, [canUseRoom, user, currentRoom]);
 
   return {
     messages,
     currentRoom,
     joinRoom,
     sendMessage,
+    error,
+    canUseRoom,
   };
 }

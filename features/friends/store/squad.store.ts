@@ -4,78 +4,230 @@ import { Squad, SquadMember } from "@/shared/types";
 
 interface SquadState {
   squad: Squad | null;
+  squads: Squad[];
   squadMembers: SquadMember[];
-  initializeSquad: (name: string, privacy: "Public" | "Encrypted" | "Cloaked") => void;
+  squadMembersByName: Record<string, SquadMember[]>;
+  activeSquadName: string | null;
+  initializeSquad: (
+    name: string,
+    privacy: "Public" | "Encrypted" | "Cloaked",
+    leader?: { id: string; username: string },
+  ) => void;
   disbandSquad: () => void;
+  setActiveSquad: (name: string) => void;
   updateSquadName: (name: string) => void;
   updateSquadPrivacy: (privacy: "Public" | "Encrypted" | "Cloaked") => void;
   kickMember: (id: string) => void;
   toggleMute: (id: string) => void;
+  getActiveSquadRoomId: () => string | null;
+  isMemberOfSquadRoom: (roomId: string, userId?: string) => boolean;
+}
+
+type PersistedSquadState = Partial<
+  Pick<
+    SquadState,
+    "squad" | "squads" | "squadMembers" | "squadMembersByName" | "activeSquadName"
+  >
+>;
+
+export function getSquadRoomId(squadName: string): string {
+  return `squad-${squadName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 }
 
 export const useSquadStore = create<SquadState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       squad: null,
+      squads: [],
       squadMembers: [],
+      squadMembersByName: {},
+      activeSquadName: null,
 
-      initializeSquad: (name, privacy) => {
-        set({
-          squad: {
-            name,
-            privacy,
-            membersCount: 1,
-            status: "ACTIVE",
-            maxMembers: 5,
-            winRate: "78%",
-            winRateTrend: "+4.2%",
-            totalOnChainWins: 42,
-            globalStanding: "#1,402",
+      initializeSquad: (name, privacy, leader) => {
+        const normalizedName = name.trim().toUpperCase();
+        const squad: Squad = {
+          name: normalizedName,
+          privacy,
+          membersCount: 1,
+          status: "ACTIVE",
+          maxMembers: 5,
+          winRate: "78%",
+          winRateTrend: "+4.2%",
+          totalOnChainWins: 42,
+          globalStanding: "#1,402",
+        };
+        const members: SquadMember[] = [
+          {
+            id: leader?.id ?? "leader",
+            username: leader?.username ?? "Commander",
+            verified: true,
+            ping: "24ms",
+            statusText: "Ready",
+            status: "online",
+            rank: "LEGEND",
+            role: "LEADER",
+            micMuted: false,
           },
-          squadMembers: [
-            {
-              id: "leader",
-              username: "Commander",
-              verified: true,
-              ping: "24ms",
-              statusText: "Ready",
-              status: "online",
-              rank: "LEGEND",
-              role: "LEADER",
-              micMuted: false,
-            }
-          ]
+        ];
+
+        set((state) => {
+          const otherSquads = state.squads.filter((item) => item.name !== normalizedName);
+          return {
+            squad,
+            squads: [...otherSquads, squad],
+            activeSquadName: normalizedName,
+            squadMembers: members,
+            squadMembersByName: {
+              ...state.squadMembersByName,
+              [normalizedName]: members,
+            },
+          };
         });
       },
 
-      disbandSquad: () => set({ squad: null, squadMembers: [] }),
+      disbandSquad: () =>
+        set((state) => {
+          if (!state.squad) {
+            return {
+              squad: null,
+              squadMembers: [],
+              activeSquadName: null,
+            };
+          }
 
-      updateSquadName: (name) => set((state) => {
-        if (!state.squad) return state;
-        return {
-          squad: { ...state.squad, name }
-        };
-      }),
+          const remainingSquads = state.squads.filter(
+            (item) => item.name !== state.squad?.name,
+          );
+          const remainingMembers = { ...state.squadMembersByName };
+          delete remainingMembers[state.squad.name];
+          const nextSquad = remainingSquads[0] ?? null;
 
-      updateSquadPrivacy: (privacy) => set((state) => {
-        if (!state.squad) return state;
-        return {
-          squad: { ...state.squad, privacy }
-        };
-      }),
+          return {
+            squad: nextSquad,
+            squads: remainingSquads,
+            activeSquadName: nextSquad?.name ?? null,
+            squadMembers: nextSquad ? remainingMembers[nextSquad.name] ?? [] : [],
+            squadMembersByName: remainingMembers,
+          };
+        }),
 
-      kickMember: (id) => set((state) => ({
-        squadMembers: state.squadMembers.filter((m) => m.id !== id)
-      })),
+      setActiveSquad: (name) =>
+        set((state) => {
+          const nextSquad = state.squads.find((item) => item.name === name);
+          if (!nextSquad) return state;
 
-      toggleMute: (id) => set((state) => ({
-        squadMembers: state.squadMembers.map((m) =>
-          m.id === id ? { ...m, micMuted: !m.micMuted } : m
-        )
-      }))
+          return {
+            squad: nextSquad,
+            activeSquadName: nextSquad.name,
+            squadMembers: state.squadMembersByName[nextSquad.name] ?? [],
+          };
+        }),
+
+      updateSquadName: (name) =>
+        set((state) => {
+          if (!state.squad) return state;
+          const normalizedName = name.trim().toUpperCase();
+          const previousName = state.squad.name;
+          const updatedSquad = { ...state.squad, name: normalizedName };
+          const previousMembers =
+            state.squadMembersByName[previousName] ?? state.squadMembers;
+          const remainingMembers = { ...state.squadMembersByName };
+          delete remainingMembers[previousName];
+
+          return {
+            squad: updatedSquad,
+            squads: state.squads.map((item) =>
+              item.name === previousName ? updatedSquad : item,
+            ),
+            activeSquadName: normalizedName,
+            squadMembersByName: {
+              ...remainingMembers,
+              [normalizedName]: previousMembers,
+            },
+          };
+        }),
+
+      updateSquadPrivacy: (privacy) =>
+        set((state) => {
+          if (!state.squad) return state;
+          const updatedSquad = { ...state.squad, privacy };
+
+          return {
+            squad: updatedSquad,
+            squads: state.squads.map((item) =>
+              item.name === updatedSquad.name ? updatedSquad : item,
+            ),
+          };
+        }),
+
+      kickMember: (id) =>
+        set((state) => {
+          if (!state.squad) {
+            return { squadMembers: state.squadMembers };
+          }
+
+          const nextMembers = state.squadMembers.filter((member) => member.id !== id);
+          return {
+            squadMembers: nextMembers,
+            squadMembersByName: {
+              ...state.squadMembersByName,
+              [state.squad.name]: nextMembers,
+            },
+          };
+        }),
+
+      toggleMute: (id) =>
+        set((state) => {
+          if (!state.squad) {
+            return { squadMembers: state.squadMembers };
+          }
+
+          const nextMembers = state.squadMembers.map((member) =>
+            member.id === id ? { ...member, micMuted: !member.micMuted } : member,
+          );
+
+          return {
+            squadMembers: nextMembers,
+            squadMembersByName: {
+              ...state.squadMembersByName,
+              [state.squad.name]: nextMembers,
+            },
+          };
+        }),
+
+      getActiveSquadRoomId: () => {
+        const activeSquad = get().squad;
+        return activeSquad ? getSquadRoomId(activeSquad.name) : null;
+      },
+
+      isMemberOfSquadRoom: (roomId, userId) => {
+        const state = get();
+        const squad = state.squads.find((item) => getSquadRoomId(item.name) === roomId);
+        if (!squad) return false;
+
+        if (!userId) return true;
+
+        const members = state.squadMembersByName[squad.name] ?? [];
+        return members.some((member) => member.id === userId);
+      },
     }),
     {
       name: "squad-storage",
-    }
-  )
+      migrate: (persistedState) => {
+        const state = persistedState as PersistedSquadState;
+
+        if (state.squads?.length) return state;
+        if (!state.squad) return state;
+
+        return {
+          ...state,
+          squads: [state.squad],
+          activeSquadName: state.squad.name,
+          squadMembersByName: {
+            [state.squad.name]: state.squadMembers ?? [],
+          },
+        };
+      },
+    },
+  ),
 );

@@ -8,7 +8,24 @@ import {
 import { useSocketStore } from "@/features/game/store/socket.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useFriendsStore } from "@/features/friends/store/friends.store";
-import { useSquadStore } from "@/features/friends/store/squad.store";
+import { getSquadRoomId, useSquadStore } from "@/features/friends/store/squad.store";
+
+interface LiveNotificationPayload {
+  type: string;
+  message: string;
+  data?: {
+    id?: string;
+    friendshipId?: string;
+    requesterId?: string;
+    senderId?: string;
+    username?: string;
+    avatar?: string | null;
+    roomId?: string;
+    matchId?: string;
+    inviterId?: string;
+    isRanked?: boolean;
+  };
+}
 
 export function useSocket() {
   const router = useRouter();
@@ -49,7 +66,7 @@ export function useSocket() {
         const { squad } = useSquadStore.getState();
         if (squad) {
           socket.emit("chat:message", {
-            roomId: `squad-${squad.name}`,
+            roomId: getSquadRoomId(squad.name),
             userId: "system",
             username: "SYSTEM",
             content: `SYSTEM:MATCH_START:${data.matchId}:${data.roomId}`,
@@ -60,7 +77,7 @@ export function useSocket() {
 
     socket.on("chat:message", (msg: { roomId?: string; content: string }) => {
       const { squad } = useSquadStore.getState();
-      if (squad && msg.roomId === `squad-${squad.name}` && msg.content?.startsWith("SYSTEM:MATCH_START:")) {
+      if (squad && msg.roomId === getSquadRoomId(squad.name) && msg.content?.startsWith("SYSTEM:MATCH_START:")) {
         const parts = msg.content.split(":");
         const matchId = parts[2];
         const roomId = parts[3];
@@ -73,14 +90,15 @@ export function useSocket() {
     // ── Notifications 
     socket.on(
       "notification:live",
-      (data: { type: string; message: string; data?: any }) => {
+      (data: LiveNotificationPayload) => {
         console.log("[notification]", data.type, data.message);
 
         if (data.type === "friend_request" && data.data) {
           // Add new request to store in real-time
           addIncomingRequest({
-            id: data.data.friendshipId ?? data.data.id,
-            requesterId: data.data.requesterId ?? data.data.senderId,
+            id: data.data.friendshipId ?? data.data.id ?? String(Date.now()),
+            requesterId:
+              data.data.requesterId ?? data.data.senderId ?? "unknown-user",
             username: data.data.username ?? "Unknown",
             avatar: data.data.avatar ?? null,
             createdAt: new Date().toISOString(),
@@ -93,8 +111,8 @@ export function useSocket() {
             senderId: data.data.senderId ?? data.data.inviterId ?? "Unknown",
             username: data.data.username ?? "Unknown",
             avatar: data.data.avatar ?? null,
-            roomId: data.data.roomId,
-            matchId: data.data.matchId,
+            roomId: data.data.roomId ?? data.data.matchId ?? String(Date.now()),
+            matchId: data.data.matchId ?? data.data.roomId ?? String(Date.now()),
             isRanked: data.data.isRanked,
           });
         }
