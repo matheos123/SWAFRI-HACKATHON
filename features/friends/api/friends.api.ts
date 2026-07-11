@@ -50,6 +50,12 @@ export interface LeaderboardUser {
   totalMatches: number;
   points: number;
 }
+export async function getUsersForInvite({ limit = 50, search }: { limit?: number; search?: string }) {
+  const { data } = await apiClient.get("/users/public", {
+    params: { limit, search },
+  });
+  return data.data; // { data: FriendUser[], total, ... }
+}
 
 /** GET /leaderboard — fetch ranked players to list in invite modal */
 export async function getLeaderboardUsers(limit = 50, offset = 0): Promise<LeaderboardUser[]> {

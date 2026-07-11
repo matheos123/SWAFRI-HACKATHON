@@ -140,6 +140,7 @@ export default function InviteModal({ isOpen, onClose }: InviteModalProps) {
                 Invite Operator
               </h3>
               <button
+              aria-label="Close modal"
                 onClick={handleClose}
                 className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
               >
