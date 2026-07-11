@@ -4,7 +4,7 @@ import { Match, Badge, LeaderboardEntry } from "@/shared/types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { initialBadges, initialMatches, leaderboardData } from "@/constants";
 
-// ─── Helpers 
+// Helpers 
 
 function getStorageItem<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -17,7 +17,7 @@ function getStorageItem<T>(key: string, fallback: T): T {
   }
 }
 
-// ─── Context shape 
+//  Context shape 
 
 interface AppStateContextValue {
   // UI navigation state
@@ -50,7 +50,7 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
-// ─── Provider 
+//  Provider 
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -76,7 +76,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("rps_arena_matches", JSON.stringify(matches));
   }, [matches]);
 
-  // ── Handlers 
+  //  Handlers 
 
   const handleOpenTxDetail = (match: Match) => {
     setSelectedTxMatch(match);

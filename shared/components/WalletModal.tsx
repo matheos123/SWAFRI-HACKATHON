@@ -32,10 +32,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const handleVerify = async () => {
     await verifyAndLink();
     // If wallet is now linked, close modal
-    const updated = useAuthStore.getState().user;
-    if (updated?.walletAddress) {
-      onClose();
-    }
+    // const updated = useAuthStore.getState().user;
+    // if (updated?.walletAddress) {
+    //   onClose();
+    // }
   };
 
   const handleDisconnect = async () => {
@@ -89,6 +89,8 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               {/* Close button */}
               <button
                 onClick={handleClose}
+                title="Close"
+                aria-label="Close"
                 className="absolute top-4 right-4 rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -177,6 +179,8 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 </h3>
               </div>
               <button
+                type="button"
+                aria-label="Close modal"
                 onClick={handleClose}
                 className="rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
               >

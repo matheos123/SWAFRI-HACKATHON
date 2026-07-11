@@ -54,7 +54,7 @@ export interface LeaderboardUser {
 /** GET /leaderboard — fetch ranked players to list in invite modal */
 export async function getLeaderboardUsers(limit = 50, offset = 0): Promise<LeaderboardUser[]> {
   const { data } = await apiClient.get<{ success: boolean; data: LeaderboardUser[] }>(
-    "/leaderboard",
+    "/users/public",
     { params: { limit, offset } }
   );
   return data.data;

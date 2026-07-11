@@ -120,6 +120,8 @@ export default function SquadView({
                     type="text"
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
+                    title="Squad name"
+                    placeholder="Enter new squad name"
                     className="bg-[#050812] border border-[#141C2F] text-xs font-mono px-2 py-1 rounded focus:outline-none focus:border-cyan-500 text-cyan-100 uppercase tracking-wider w-full"
                     maxLength={20}
                   />

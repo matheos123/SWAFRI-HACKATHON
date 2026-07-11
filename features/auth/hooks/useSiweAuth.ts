@@ -78,15 +78,17 @@ export function useSiweAuth(): UseSiweAuthReturn {
       });
 
       // Step 5: Update store with new wallet info
-      const currentUser = useAuthStore.getState().user;
-      if (currentUser) {
-        setUser({
-          ...currentUser,
-          walletAddress: result.walletAddress,
-          blockchainProfileId: result.blockchainProfileId,
-          walletVerifiedAt: result.verifiedAt,
-        });
-      }
+      // const currentUser = useAuthStore.getState().user;
+      // if (currentUser) {
+      //   setUser({
+      //     ...currentUser,
+      //     walletAddress: result.walletAddress,
+      //     blockchainProfileId: result.blockchainProfileId,
+      //     walletVerifiedAt: result.verifiedAt,
+      //   });
+      // }
+      // Step 5: refetch the canonical user from the server
+        await useAuthStore.getState().loadProfile();
     } catch (err: unknown) {
       const details = getErrorDetails(err);
       if (details.code === 4001 || details.name === "UserRejectedRequestError") {
