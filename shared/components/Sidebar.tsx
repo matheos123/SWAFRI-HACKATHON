@@ -51,7 +51,7 @@ export default function Sidebar({
       <div>
         {/* User Profile Summary */}
         <div className="flex items-center gap-3.5 pb-6 mb-6 border-b border-gray-800/60">
-          <div className="relative w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 text-sm font-mono font-bold text-indigo-300 uppercase">
+          <div className="relative w-11 h-11 rounded-xl bg-linear-to-tr from-purple-500/20 to-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 text-sm font-mono font-bold text-indigo-300 uppercase">
             {user.username[0]}
             <div className="absolute inset-0 rounded-xl border border-indigo-500/10 animate-pulse" />
           </div>
@@ -82,7 +82,7 @@ export default function Sidebar({
                 onClick={() => handleTabClick(item.path)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 border border-transparent font-medium text-xs uppercase tracking-widest text-left select-none relative group ${
                   isActive
-                    ? "bg-gradient-to-r from-purple-950/40 to-indigo-950/20 border-purple-500/50 text-purple-300 shadow-[inset_0_0_15px_rgba(168,85,247,0.15)]"
+                    ? "bg-linear-to-r from-purple-950/40 to-indigo-950/20 border-purple-500/50 text-purple-300 shadow-[inset_0_0_15px_rgba(168,85,247,0.15)]"
                     : "text-gray-400 hover:text-white hover:bg-gray-900/40"
                 }`}
               >
@@ -138,7 +138,7 @@ export default function Sidebar({
       <div className="hidden md:block lg:hidden fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsOpenMobile(!isOpenMobile)}
-          className="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 p-3.5 text-white shadow-xl shadow-purple-500/25 border border-purple-400/20 active:scale-95 transition-transform cursor-pointer"
+          className="rounded-full bg-linear-to-r from-purple-600 to-indigo-600 p-3.5 text-white shadow-xl shadow-purple-500/25 border border-purple-400/20 active:scale-95 transition-transform cursor-pointer"
         >
           {isOpenMobile ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -188,7 +188,7 @@ export default function Sidebar({
               className={`h-14 w-14 rounded-full flex items-center justify-center text-white border-2 shadow-xl transform active:scale-95 transition-all ${
                 pathname === "/lobby"
                   ? "bg-purple-600 border-purple-400 shadow-purple-500/30 scale-105"
-                  : "bg-gradient-to-b from-indigo-600 to-slate-900 border-indigo-500 shadow-indigo-500/10"
+                  : "bg-linear-to-b from-indigo-600 to-slate-900 border-indigo-500 shadow-indigo-500/10"
               }`}
             >
               <Sword className="w-6 h-6 transform -rotate-45" />

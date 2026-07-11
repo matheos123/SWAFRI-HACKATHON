@@ -1,6 +1,7 @@
 "use client";
-import { Bell, Settings, Wallet, Shield, Trophy, Swords, User } from "lucide-react";
+import { Bell, Settings, Wallet, Shield, Menu, X, Swords } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { useState } from "react";
 import { AuthUser } from "@/features/auth/api/auth.api";
 import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
 
@@ -17,6 +18,7 @@ export default function Navbar({
 }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isQueued, matchmakingStatus, joinQueue, cancelQueue } = useMatchmaking();
 
   const handleFindMatch = () => {
@@ -26,21 +28,28 @@ export default function Navbar({
       joinQueue();
       router.push("/lobby");
     }
+    setIsMobileMenuOpen(false); // Close menu if action taken
+  };
+
+  const navigateTo = (path: string) => {
+    router.push(path);
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <>
-      {/* ========================================================= */}
-      {/* 1. DESKTOP & TABLET VIEW: FIXED TOP NAVBAR (visible on md+) */}
-      {/* ========================================================= */}
+      {/* ========================================== */}
+      {/* GLOBAL TOP NAV BAR (Universal Layout)      */}
+      {/* ========================================== */}
       <nav
         id="app-navbar"
-        className="hidden md:block sticky top-0 z-40 w-full border-b border-[#141C2F]/80 bg-[#0A0E17]/95 backdrop-blur-md px-6 py-3.5"
+        className="sticky top-0 z-40 w-full border-b border-[#141C2F]/80 bg-[#0A0E17]/95 backdrop-blur-md px-4 sm:px-8 py-3.5"
       >
         <div className="w-full flex items-center justify-between gap-4">
-          {/* Brand Logo */}
+          
+          {/* Left: Brand Logo */}
           <div
-            onClick={() => router.push("/dashboard")}
+            onClick={() => navigateTo("/dashboard")}
             className="flex items-center gap-2 cursor-pointer group"
           >
             <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
@@ -51,8 +60,8 @@ export default function Navbar({
             </span>
           </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-3.5">
+          {/* Right Actions: Desktop Layout (hidden on mobile) */}
+          <div className="hidden md:flex items-center gap-3.5">
             {/* Find Match */}
             <button
               onClick={handleFindMatch}
@@ -73,9 +82,9 @@ export default function Navbar({
               <span className="text-xs font-bold font-mono text-cyan-300">{user.points.toLocaleString()}</span>
             </div>
 
-            {/* Identity Profile Shortcut */}
+            {/* User Profile */}
             <button
-              onClick={() => router.push("/profile")}
+              onClick={() => navigateTo("/profile")}
               className="flex items-center gap-2 px-3 h-10 rounded-lg border border-gray-800 bg-[#101726] hover:border-gray-700 transition-colors"
             >
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500/30 to-indigo-500/30 border border-cyan-500/40 flex items-center justify-center text-[10px] font-mono font-bold text-cyan-300 uppercase">
@@ -84,18 +93,18 @@ export default function Navbar({
               <span className="text-xs font-mono text-gray-300 font-semibold">{user.username}</span>
             </button>
 
-            {/* Quick Action Panels */}
+            {/* Icons */}
             <div className="flex items-center gap-1.5">
               <button onClick={() => alert("No new notifications.")} className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
               </button>
-              <button onClick={() => router.push("/settings")} className={`p-2 rounded-lg transition-colors ${pathname === "/settings" ? "text-cyan-400 bg-[#141C2F]/50" : "text-gray-400 hover:text-white hover:bg-gray-800/50"}`}>
+              <button onClick={() => navigateTo("/settings")} className={`p-2 rounded-lg transition-colors ${pathname === "/settings" ? "text-cyan-400 bg-[#141C2F]/50" : "text-gray-400 hover:text-white hover:bg-gray-800/50"}`}>
                 <Settings className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Web3 Node Link */}
+            {/* Wallet Integration */}
             <button
               onClick={onOpenWallet}
               className={`flex items-center gap-1.5 px-4 h-10 rounded-lg border transition-all cursor-pointer text-xs font-sans font-bold tracking-widest uppercase ${
@@ -108,92 +117,91 @@ export default function Navbar({
               <span>{user.walletAddress ? `${user.walletAddress.slice(0, 4)}...${user.walletAddress.slice(-4)}` : "Connect Wallet"}</span>
             </button>
           </div>
-        </div>
-      </nav>
 
-      {/* ========================================================= */}
-      {/* 2. MOBILE VIEW: TOP MINI-STATUS HEADER (visible below md) */}
-      {/* ========================================================= */}
-      <header className="md:hidden sticky top-0 z-40 w-full flex items-center justify-between bg-[#0A0E17]/95 border-b border-[#141C2F]/60 px-4 py-3 backdrop-blur-md">
-        <span className="font-sans font-black tracking-widest text-sm text-white uppercase">
-          RPS <span className="text-cyan-400">Arena</span>
-        </span>
-        
-        <div className="flex items-center gap-3">
-          {/* Mobile Micro Wallet State Indicator */}
-          <button 
-            onClick={onOpenWallet}
-            className={`p-2 rounded-lg border ${user.walletAddress ? "border-cyan-500/30 bg-cyan-950/30 text-cyan-400" : "border-slate-800 text-slate-400"}`}
-          >
-            <Wallet className="w-4 h-4" />
-          </button>
-          <div className="bg-[#101726] border border-gray-800 rounded-md px-2.5 py-1 text-[11px] font-mono font-bold text-cyan-300">
-            {user.points.toLocaleString()} PTS
-          </div>
-        </div>
-      </header>
-
-      {/* ========================================================= */}
-      {/* 3. MOBILE VIEW: TACTICAL BOTTOM DOCK TAB BAR (visible below md) */}
-      {/* ========================================================= */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0A0E17]/95 border-t border-[#141C2F]/80 backdrop-blur-lg px-2 pb-safe-bottom">
-        <div className="grid grid-cols-5 items-center justify-between py-2 text-center relative">
-          
-          {/* Tab item 1: Dashboard Home */}
-          <button 
-            onClick={() => router.push("/dashboard")} 
-            className={`flex flex-col items-center gap-1 py-1 text-[10px] font-bold font-sans uppercase tracking-wider ${pathname === "/dashboard" ? "text-cyan-400" : "text-slate-500"}`}
-          >
-            <Trophy className="w-5 h-5" />
-            <span>Lobby</span>
-          </button>
-
-          {/* Tab item 2: Notifications */}
-          <button 
-            onClick={() => alert("No new notifications.")} 
-            className="flex flex-col items-center gap-1 py-1 text-[10px] font-bold font-sans uppercase tracking-wider text-slate-500 relative"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-6 w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span>Alerts</span>
-          </button>
-
-          {/* Tab item 3: CENTRAL FIND MATCH ACTION COMPONENT */}
-          <div className="relative -top-5 flex justify-center">
+          {/* Mobile Right: Hamburger Menu Toggle Icon Trigger (hidden on md+) */}
+          <div className="md:hidden flex items-center gap-3">
+            <div className="bg-[#101726] border border-gray-800 rounded-md px-2.5 py-1.5 text-xs font-mono font-bold text-cyan-300">
+              {user.points.toLocaleString()} PTS
+            </div>
+            
             <button
-              onClick={handleFindMatch}
-              className={`h-14 w-14 rounded-full flex items-center justify-center text-white border-2 shadow-xl transform active:scale-95 transition-all ${
-                isQueued
-                  ? "bg-amber-600 border-amber-400 animate-pulse shadow-amber-500/20"
-                  : matchmakingStatus === "matched"
-                    ? "bg-emerald-600 border-emerald-400 shadow-emerald-500/20"
-                    : "bg-gradient-to-b from-cyan-400 to-blue-600 border-cyan-300 shadow-cyan-500/30"
-              }`}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-gray-400 hover:text-white bg-slate-800/20 border border-slate-800/80 transition-all"
             >
-              <Swords className={`w-6 h-6 ${isQueued ? "animate-spin" : ""}`} />
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Tab item 4: Profile */}
-          <button 
-            onClick={() => router.push("/profile")} 
-            className={`flex flex-col items-center gap-1 py-1 text-[10px] font-bold font-sans uppercase tracking-wider ${pathname === "/profile" ? "text-cyan-400" : "text-slate-500"}`}
+        </div>
+      </nav>
+
+      {/* ========================================== */}
+      {/* MOBILE COLLAPSED DRAWER DRAWER OVERLAY   */}
+      {/* ========================================== */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-[61px] z-30 bg-[#070B13]/98 border-t border-[#141C2F]/40 flex flex-col p-6 animate-fade-in animate-duration-200">
+          
+          {/* Mobile Matchmaking Interface Button */}
+          <button
+            onClick={handleFindMatch}
+            className={`w-full py-3.5 mb-6 rounded-lg flex items-center justify-center gap-2 text-xs font-bold font-sans tracking-widest uppercase transition-all duration-300 border shadow-lg ${
+              isQueued
+                ? "bg-amber-600/20 border-amber-500/40 text-amber-200 animate-pulse"
+                : matchmakingStatus === "matched"
+                  ? "bg-emerald-600/20 border-emerald-500/40 text-emerald-200"
+                  : "bg-gradient-to-r from-blue-500 to-cyan-500 text-[#070B13] font-black border-cyan-400/30"
+            }`}
           >
-            <User className="w-5 h-5" />
-            <span>Profile</span>
+            <Swords className="w-4 h-4" />
+            <span>{isQueued ? "In Queue... (Cancel)" : matchmakingStatus === "matched" ? "Match Found!" : "Find Match"}</span>
           </button>
 
-          {/* Tab item 5: Settings */}
-          <button 
-            onClick={() => router.push("/settings")} 
-            className={`flex flex-col items-center gap-1 py-1 text-[10px] font-bold font-sans uppercase tracking-wider ${pathname === "/settings" ? "text-cyan-400" : "text-slate-500"}`}
-          >
-            <Settings className="w-5 h-5" />
-            <span>System</span>
-          </button>
+          {/* Navigation Links List */}
+          <div className="flex-1 space-y-2">
+            <button
+              onClick={() => navigateTo("/profile")}
+              className="w-full flex items-center justify-between p-3.5 rounded-lg border border-slate-800/60 bg-[#101726]/40 hover:bg-[#101726] text-left"
+            >
+              <span className="text-xs font-mono text-gray-300 font-semibold uppercase tracking-wider">
+                👤 Profile ({user.username})
+              </span>
+              <span className="text-xs text-slate-600">➔</span>
+            </button>
+
+            <button
+              onClick={() => navigateTo("/settings")}
+              className={`w-full flex items-center justify-between p-3.5 rounded-lg border text-left ${
+                pathname === "/settings" ? "border-cyan-500/40 bg-cyan-950/10 text-cyan-400" : "border-slate-800/60 bg-[#101726]/40"
+              }`}
+            >
+              <span className="text-xs font-mono uppercase tracking-wider">⚙️ System Configuration</span>
+              <span className="text-xs text-slate-600">➔</span>
+            </button>
+
+            <button
+              onClick={() => {
+                onOpenWallet();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between p-3.5 rounded-lg border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 text-left"
+            >
+              <span className="text-xs font-mono font-bold uppercase tracking-wider">
+                💼 {user.walletAddress ? `Wallet: ${user.walletAddress.slice(0, 4)}...${user.walletAddress.slice(-4)}` : "Connect Wallet"}
+              </span>
+              <span className="text-xs text-cyan-600">➔</span>
+            </button>
+          </div>
+
+          {/* Alerts / System Tray Indicator Footer */}
+          <div className="mt-auto border-t border-slate-900 pt-4 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Security Framework: v1.0.4</span>
+            <button onClick={() => alert("No new alerts.")} className="text-cyan-500 underline uppercase tracking-widest text-[10px] font-bold">
+              Check Alerts
+            </button>
+          </div>
 
         </div>
-      </div>
+      )}
     </>
   );
 }
