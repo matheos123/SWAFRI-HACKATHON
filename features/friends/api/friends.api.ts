@@ -22,11 +22,12 @@ export interface Friendship {
 }
 
 export interface FriendRequest {
-  id: string; // friendship UUID
+  id: string;
   requesterId: string;
   username: string;
   avatar: string | null;
   createdAt: string;
+  // status?: string; // if you need it later
 }
 
 //  Endpoints 
@@ -112,14 +113,23 @@ export async function getFriends(): Promise<Friendship[]> {
 }
 
 /** GET /friends/requests */
+/** GET /friends/requests */
 export async function getFriendRequests(): Promise<FriendRequest[]> {
   const { data } = await apiClient.get<{
     success: boolean;
-    data: FriendRequest[];
+    data: any[];           // raw response
   }>("/friends/requests");
-  return data.data;
-}
 
+  // Map the nested requester data
+  return (data.data || []).map((req: any) => ({
+    id: req.id,
+    requesterId: req.requesterId,
+    username: req.requester?.username || "Unknown",
+    avatar: req.requester?.avatar || null,
+    createdAt: req.createdAt,
+    // You can add more fields if needed
+  }));
+}
 /** DELETE /friends/:friendId */
 export async function removeFriend(friendId: string): Promise<void> {
   await apiClient.delete(`/friends/${friendId}`);

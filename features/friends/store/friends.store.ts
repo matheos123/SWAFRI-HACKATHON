@@ -59,8 +59,9 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
     try {
       const requests = await getFriendRequests();
       set({ requests });
-    } catch {
-      // silent
+    } catch (err) {
+      console.error("Failed to load requests:", err);
+      set({ requests: [] });
     }
   },
 
