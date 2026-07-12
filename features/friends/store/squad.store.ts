@@ -2,6 +2,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Squad, SquadMember } from "@/shared/types";
 
+function dedupeMembers(members: SquadMember[]): SquadMember[] {
+  const seen = new Set<string>();
+
+  return members.filter((member) => {
+    if (seen.has(member.id)) {
+      return false;
+    }
+
+    seen.add(member.id);
+    return true;
+  });
+}
+
 interface SquadState {
   squad: Squad | null;
   squads: Squad[];
@@ -17,6 +30,7 @@ interface SquadState {
   setActiveSquad: (name: string) => void;
   updateSquadName: (name: string) => void;
   updateSquadPrivacy: (privacy: "Public" | "Encrypted" | "Cloaked") => void;
+  addMember: (member: Pick<SquadMember, "id" | "username" | "avatarUrl">) => void;
   kickMember: (id: string) => void;
   toggleMute: (id: string) => void;
   getActiveSquadRoomId: () => string | null;
@@ -160,14 +174,78 @@ export const useSquadStore = create<SquadState>()(
           };
         }),
 
+      addMember: (member) =>
+        set((state) => {
+          if (!state.squad) return state;
+
+          const currentMembers = dedupeMembers(
+            state.squadMembersByName[state.squad.name] ?? state.squadMembers,
+          );
+          if (currentMembers.some((item) => item.id === member.id)) {
+            return state;
+          }
+
+          if (currentMembers.length >= state.squad.maxMembers) {
+            return state;
+          }
+
+          const nextMembers = dedupeMembers([
+            ...currentMembers,
+            {
+              id: member.id,
+              username: member.username,
+              avatarUrl: member.avatarUrl,
+              verified: false,
+              ping: null,
+              statusText: "Squad member",
+              status: "online",
+              rank: "ALLY",
+              role: "OPERATIVE",
+              micMuted: false,
+            },
+          ]);
+
+          const updatedSquad = {
+            ...state.squad,
+            membersCount: nextMembers.length,
+          };
+
+          return {
+            squad: updatedSquad,
+            squads: state.squads.map((item) =>
+              item.name === state.squad?.name
+                ? { ...item, membersCount: nextMembers.length }
+                : item,
+            ),
+            squadMembers: nextMembers,
+            squadMembersByName: {
+              ...state.squadMembersByName,
+              [state.squad.name]: nextMembers,
+            },
+          };
+        }),
+
       kickMember: (id) =>
         set((state) => {
           if (!state.squad) {
             return { squadMembers: state.squadMembers };
           }
 
-          const nextMembers = state.squadMembers.filter((member) => member.id !== id);
+          const nextMembers = dedupeMembers(
+            state.squadMembers.filter((member) => member.id !== id),
+          );
+          const updatedSquad = {
+            ...state.squad,
+            membersCount: nextMembers.length,
+          };
+
           return {
+            squad: updatedSquad,
+            squads: state.squads.map((item) =>
+              item.name === state.squad?.name
+                ? { ...item, membersCount: nextMembers.length }
+                : item,
+            ),
             squadMembers: nextMembers,
             squadMembersByName: {
               ...state.squadMembersByName,
@@ -216,15 +294,38 @@ export const useSquadStore = create<SquadState>()(
       migrate: (persistedState) => {
         const state = persistedState as PersistedSquadState;
 
-        if (state.squads?.length) return state;
+        if (state.squads?.length) {
+          const squadMembersByName = Object.fromEntries(
+            Object.entries(state.squadMembersByName ?? {}).map(([name, members]) => [
+              name,
+              dedupeMembers(members ?? []),
+            ]),
+          );
+          const activeSquadName = state.activeSquadName ?? state.squad?.name ?? null;
+
+          return {
+            ...state,
+            squadMembersByName,
+            squadMembers: activeSquadName
+              ? squadMembersByName[activeSquadName] ?? dedupeMembers(state.squadMembers ?? [])
+              : dedupeMembers(state.squadMembers ?? []),
+            squads: state.squads.map((squad) => ({
+              ...squad,
+              membersCount: (squadMembersByName[squad.name] ?? []).length || squad.membersCount,
+            })),
+          };
+        }
         if (!state.squad) return state;
+
+        const squadMembers = dedupeMembers(state.squadMembers ?? []);
 
         return {
           ...state,
           squads: [state.squad],
           activeSquadName: state.squad.name,
+          squadMembers,
           squadMembersByName: {
-            [state.squad.name]: state.squadMembers ?? [],
+            [state.squad.name]: squadMembers,
           },
         };
       },

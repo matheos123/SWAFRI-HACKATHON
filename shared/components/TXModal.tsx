@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   Database,
   Layers,
-  Flame,
 } from "lucide-react";
 import { Match } from "@/shared/types";
 
@@ -13,23 +12,39 @@ interface TxModalProps {
   isOpen: boolean;
   match: Match | null;
   onClose: () => void;
-  walletAddress: string;
 }
 
 export default function TxModal({
   isOpen,
   match,
   onClose,
-  walletAddress,
 }: TxModalProps) {
   if (!match) return null;
 
-  // Generate some deterministic mock blockchain parameters based on match parameters
   const isVictory = match.status === "VICTORY";
-  const blockNumber = 18492021 + Math.floor(Math.random() * 5000);
-  const gasUsed = 124392 + Math.floor(Math.random() * 10000);
+  const isDraw = match.status === "DRAW";
+  const seedSource = `${match.id}:${match.txId}:${match.opponent}`;
+  const seed = Array.from(seedSource).reduce(
+    (total, char) => total + char.charCodeAt(0),
+    0,
+  );
+  const blockNumber = 18492021 + (seed % 5000);
+  const gasUsed = 124392 + (seed % 10000);
   const gasPriceGwei = 24.5;
   const gasFeeEth = ((gasUsed * gasPriceGwei) / 1e9).toFixed(6);
+  const txHash =
+    match.onChainHash ||
+    (match.txId.startsWith("0x") ? match.txId : null) ||
+    (match.id.startsWith("0x") ? match.id : null);
+  const displayHash =
+    txHash ??
+    (match.id === "match-1"
+      ? "0x4a8b1392dfc904e2808c1092e0761d4a0a4c5f2d"
+      : match.id === "match-2"
+        ? "0x7c9d9021fbc8a2e76fa108a4f6cc11b4a09c2e04"
+        : match.id === "match-3"
+          ? "0x2e5f0d9272fc002ea9789cb432240902c55c1b9a"
+          : `0x${match.txId}fd48b81cf9021eb3cf0d9a7812ee01cc1a0b5f5c`);
 
   return (
     <AnimatePresence>
@@ -96,13 +111,7 @@ export default function TxModal({
                   Transaction Hash
                 </span>
                 <span className="col-span-2 text-white font-mono break-all text-right">
-                  {match.id === "match-1"
-                    ? "0x4a8b1392dfc904e2808c1092e0761d4a0a4c5f2d"
-                    : match.id === "match-2"
-                      ? "0x7c9d9021fbc8a2e76fa108a4f6cc11b4a09c2e04"
-                      : match.id === "match-3"
-                        ? "0x2e5f0d9272fc002ea9789cb432240902c55c1b9a"
-                        : `0x${match.txId}fd48b81cf9021eb3cf0d9a7812ee01cc1a0b5f5c`}
+                  {displayHash}
                 </span>
               </div>
 
@@ -120,9 +129,15 @@ export default function TxModal({
               <div className="grid grid-cols-3 border-b border-gray-900 pb-2">
                 <span className="text-gray-400 font-medium">Battle Result</span>
                 <span
-                  className={`col-span-2 font-bold text-right ${isVictory ? "text-cyan-400" : "text-rose-400"}`}
+                  className={`col-span-2 font-bold text-right ${
+                    isVictory
+                      ? "text-cyan-400"
+                      : isDraw
+                        ? "text-amber-300"
+                        : "text-rose-400"
+                  }`}
                 >
-                  {isVictory ? "VICTORY" : "DEFEAT"} ({match.score})
+                  {match.status} ({match.score})
                 </span>
               </div>
 
@@ -151,13 +166,19 @@ export default function TxModal({
                 </span>
                 <div className="col-span-2 text-right">
                   <div
-                    className={`font-bold ${isVictory ? "text-emerald-400" : "text-rose-400"}`}
+                    className={`font-bold ${
+                      isVictory
+                        ? "text-emerald-400"
+                        : isDraw
+                          ? "text-amber-300"
+                          : "text-rose-400"
+                    }`}
                   >
-                    {isVictory ? "+" : ""}
+                    {match.rewardRP >= 0 ? "+" : ""}
                     {match.rewardRP} Rating Points (RP)
                   </div>
                   <div className="text-cyan-300 font-bold mt-0.5">
-                    {isVictory ? `+${match.rewardRPS}` : "0"} $RPS ERC-20 Tokens
+                    +{match.rewardRPS} $RPS ERC-20 Tokens
                   </div>
                 </div>
               </div>

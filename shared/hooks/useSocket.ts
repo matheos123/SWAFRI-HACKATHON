@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   connectSocket,
   disconnectSocket,
@@ -9,6 +9,8 @@ import { useSocketStore } from "@/features/game/store/socket.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useFriendsStore } from "@/features/friends/store/friends.store";
 import { getSquadRoomId, useSquadStore } from "@/features/friends/store/squad.store";
+import { LeaderboardPlayer } from "@/features/leaderboard/api/leaderboard.api";
+import { NotificationItem, countUnreadNotifications } from "@/features/notifications/api/notifications.api";
 
 interface LiveNotificationPayload {
   type: string;
@@ -28,7 +30,7 @@ interface LiveNotificationPayload {
 }
 
 export function useSocket() {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const { setConnected, setMatchmakingStatus, setQueuePosition, setMatchData } =
     useSocketStore();
@@ -43,6 +45,18 @@ export function useSocket() {
     // ── Connection
     socket.on("connect", () => setConnected(true));
     socket.on("disconnect", () => setConnected(false));
+
+    socket.on("leaderboard:update", (payload: LeaderboardPlayer[] | { data: LeaderboardPlayer[] }) => {
+      const leaderboard = Array.isArray(payload) ? payload : payload.data;
+      queryClient.setQueriesData(
+        { queryKey: ["leaderboard"] },
+        leaderboard,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: ["leaderboard"],
+        refetchType: "inactive",
+      });
+    });
 
     // ── Matchmaking 
     socket.on("matchmaking:queued", (data: { position: number }) => {
@@ -79,7 +93,6 @@ export function useSocket() {
       const { squad } = useSquadStore.getState();
       if (squad && msg.roomId === getSquadRoomId(squad.name) && msg.content?.startsWith("SYSTEM:MATCH_START:")) {
         const parts = msg.content.split(":");
-        const matchId = parts[2];
         const roomId = parts[3];
         if (roomId) {
           socket.emit("spectate:join", { roomId });
@@ -92,6 +105,30 @@ export function useSocket() {
       "notification:live",
       (data: LiveNotificationPayload) => {
         console.log("[notification]", data.type, data.message);
+
+        queryClient.setQueryData(
+          ["notifications"],
+          (current:
+            | { items: NotificationItem[]; unreadCount: number }
+            | undefined) => {
+            const nextItem: NotificationItem = {
+              id: data.data?.id ?? `${data.type}-${Date.now()}`,
+              type: data.type,
+              message: data.message,
+              isRead: false,
+              createdAt: new Date().toISOString(),
+              data: data.data,
+            };
+
+            const existing = current?.items ?? [];
+            const items = [nextItem, ...existing].slice(0, 20);
+
+            return {
+              items,
+              unreadCount: countUnreadNotifications(items),
+            };
+          },
+        );
 
         if (data.type === "friend_request" && data.data) {
           // Add new request to store in real-time
@@ -127,12 +164,23 @@ export function useSocket() {
     return () => {
       socket.off("connect");
       socket.off("disconnect");
+      socket.off("leaderboard:update");
       socket.off("matchmaking:queued");
       socket.off("matchmaking:matched");
       socket.off("chat:message");
       socket.off("notification:live");
     };
-  }, [user]); 
+  }, [
+    addGameInvite,
+    addIncomingRequest,
+    loadRequests,
+    queryClient,
+    setConnected,
+    setMatchData,
+    setMatchmakingStatus,
+    setQueuePosition,
+    user,
+  ]);
 
   useEffect(() => {
     if (!user) disconnectSocket();

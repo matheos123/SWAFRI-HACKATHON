@@ -72,3 +72,15 @@ export async function fetchProfile(): Promise<AuthUser> {
   const { data } = await apiClient.get<ProfileResponse>("/auth/profile");
   return data.data;
 }
+
+export async function requestPasswordResetOtp(email: string): Promise<void> {
+  await apiClient.post("/auth/request-otp", { email });
+}
+
+export async function verifyPasswordResetOtp(otp: string): Promise<void> {
+  await apiClient.post("/auth/verify-otp", { otp });
+}
+
+export async function resetPassword(newPassword: string): Promise<void> {
+  await apiClient.post("/auth/reset-password", { newPassword });
+}

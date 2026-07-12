@@ -31,7 +31,7 @@ export interface Badge {
 
 export interface Match {
   id: string;
-  status: "VICTORY" | "DEFEAT";
+  status: "VICTORY" | "DEFEAT" | "DRAW";
   opponent: string;
   opponentLevel: number;
   score: string;
@@ -39,9 +39,18 @@ export interface Match {
   rewardRPS: number;
   txId: string;
   timestamp: string;
+  opponentId?: string;
+  createdAt?: string;
+  matchId?: string;
+  onChainHash?: string | null;
+  explorerUrl?: string | null;
+  isRanked?: boolean;
+  player1Wins?: number;
+  player2Wins?: number;
 }
 
 export interface LeaderboardEntry {
+  userId?: string;
   rank: number;
   username: string;
   level: number;

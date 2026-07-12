@@ -1,46 +1,42 @@
 "use client";
 import { useState } from "react";
-import { motion } from "motion/react";
 import {
-  Users,
-  Shield,
   UserMinus,
   Mic,
   MicOff,
   UserPlus,
-  Check,
   Edit2,
-  Lock,
-  Unlock,
-  TrendingUp,
-  Trophy,
-  Hash,
-  Sparkles,
-  AlertTriangle,
 } from "lucide-react";
 import { Squad, SquadMember } from "@/shared/types";
+import { Friendship } from "@/features/friends/api/friends.api";
 import CreateGroupView from "@/features/friends/components/CreateGroup";
 import InviteModal from "@/features/friends/components/InviteModal";
 
 interface SquadViewProps {
   squad: Squad | null;
+  squads: Squad[];
+  activeSquadName: string | null;
   squadMembers: SquadMember[];
+  availableFriends: Friendship[];
+  onSelectSquad: (name: string) => void;
   onUpdateSquadName: (name: string) => void;
-  onUpdateSquadPrivacy: (privacy: "Public" | "Encrypted" | "Cloaked") => void;
+  onAddMember: (friend: Friendship) => void;
   onKickMember: (id: string) => void;
   onToggleMute: (id: string) => void;
-  onDisbandSquad: () => void;
   onInitializeSquad: (name: string, privacy: "Public" | "Encrypted") => void;
 }
 
 export default function SquadView({
   squad,
+  squads,
+  activeSquadName,
   squadMembers,
+  availableFriends,
+  onSelectSquad,
   onUpdateSquadName,
-  onUpdateSquadPrivacy,
+  onAddMember,
   onKickMember,
   onToggleMute,
-  onDisbandSquad,
   onInitializeSquad,
 }: SquadViewProps) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -62,18 +58,6 @@ export default function SquadView({
     }
   };
 
-  // Cycle privacy levels: Public -> Encrypted -> Cloaked -> Public
-  const handleCyclePrivacy = () => {
-    if (!squad) return;
-    const privacyCycle: Record<string, "Public" | "Encrypted" | "Cloaked"> = {
-      Public: "Encrypted",
-      Encrypted: "Cloaked",
-      Cloaked: "Public",
-    };
-    const nextPrivacy = privacyCycle[squad.privacy] || "Public";
-    onUpdateSquadPrivacy(nextPrivacy);
-  };
-
   // If there is no active squad, display the Create/Initialize Group protocol screen
   if (!squad) {
     return (
@@ -90,6 +74,32 @@ export default function SquadView({
 
   return (
     <div className="space-y-8 font-sans">
+      {squads.length > 1 && (
+        <div className="rounded-2xl border border-slate-800/80 bg-[#090E1B] p-4">
+          <label
+            htmlFor="active-squad"
+            className="mb-2 block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500"
+          >
+            Active squad
+          </label>
+          <select
+            id="active-squad"
+            value={activeSquadName ?? squad.name}
+            onChange={(event) => onSelectSquad(event.target.value)}
+            className="w-full rounded-xl border border-slate-800 bg-[#050812] px-4 py-3 text-xs font-bold uppercase tracking-wider text-cyan-300 outline-none focus:border-cyan-500/50"
+          >
+            {squads.map((item) => (
+              <option key={item.name} value={item.name}>
+                {item.name} · {item.membersCount}/{item.maxMembers} members
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-[10px] text-slate-500">
+            Chat and squad battle controls follow the selected squad.
+          </p>
+        </div>
+      )}
+
       {/* Upper Grid Layout: Left Column (Group Protocol Sidebox) & Right Column (Operators Table) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Side: GROUP PROTOCOL controls panel */}
@@ -200,6 +210,56 @@ export default function SquadView({
 
         {/* Right Side: COMMAND CENTER Main space */}
         <div className="col-span-1 lg:col-span-8 xl:col-span-9 space-y-6">
+          <div className="rounded-2xl border border-slate-800/80 bg-[#090E1B] p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                  Squad roster management
+                </h2>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Add accepted friends into {squad.name}. Squad chat and squad matches use this roster.
+                </p>
+              </div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">
+                Capacity {squadMembers.length}/{squad.maxMembers}
+              </span>
+            </div>
+
+            {availableFriends.length === 0 ? (
+              <div className="mt-4 rounded-xl border border-dashed border-slate-700 bg-[#050812] px-4 py-3 text-[11px] text-slate-400">
+                {squadMembers.length >= squad.maxMembers
+                  ? "This squad is full. Remove a member before adding another."
+                  : "No eligible friends to add yet. First accept a friend request, then add them to this squad here."}
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {availableFriends.map((friend, index) => (
+                  <div
+                    key={`${friend.friendId}-${index}`}
+                    className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-[#050812] p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-bold uppercase tracking-wider text-white">
+                        {friend.username}
+                      </p>
+                      <p className="mt-1 truncate text-[10px] font-mono text-slate-500">
+                        {friend.friendId}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onAddMember(friend)}
+                      disabled={squadMembers.length >= squad.maxMembers}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-cyan-300 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-500"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Add to squad
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Header Action Row */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -250,9 +310,9 @@ export default function SquadView({
 
                 {/* Table Body */}
                 <tbody className="divide-y divide-[#141C2F]/50">
-                  {squadMembers.map((member) => (
+                  {squadMembers.map((member, index) => (
                     <tr
-                      key={member.id}
+                      key={`${member.id}-${member.role}-${index}`}
                       className="hover:bg-[#101726]/10 transition-colors group"
                     >
                       {/* OPERATOR COL */}
@@ -273,13 +333,12 @@ export default function SquadView({
                             <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-1 flex items-center gap-1.5">
                               {/* Glowing dot status indicator */}
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  member.status === "online"
+                                className={`w-1.5 h-1.5 rounded-full ${member.status === "online"
                                     ? "bg-cyan-400 shadow-[0_0_6px_#22d3ee]"
                                     : member.status === "ingame"
                                       ? "bg-amber-400 shadow-[0_0_6px_#fbbf24]"
                                       : "bg-rose-500"
-                                }`}
+                                  }`}
                               />
                               <span>{member.statusText || member.status}</span>
                             </p>
@@ -297,11 +356,10 @@ export default function SquadView({
                       {/* ROLE COL */}
                       <td className="px-6 py-4.5">
                         <span
-                          className={`text-[10px] font-mono uppercase tracking-wider font-bold ${
-                            member.role === "LEADER"
+                          className={`text-[10px] font-mono uppercase tracking-wider font-bold ${member.role === "LEADER"
                               ? "text-indigo-300"
                               : "text-gray-500"
-                          }`}
+                            }`}
                         >
                           {member.role}
                         </span>
@@ -328,11 +386,10 @@ export default function SquadView({
                                   ? "Unmute Operative"
                                   : "Mute Operative"
                               }
-                              className={`p-2 rounded-xl border transition-all ${
-                                member.micMuted
+                              className={`p-2 rounded-xl border transition-all ${member.micMuted
                                   ? "bg-rose-950/20 border-rose-500/30 text-rose-400 hover:bg-rose-950/40"
                                   : "bg-[#101726]/40 border-gray-800 text-gray-400 hover:text-white hover:border-gray-700"
-                              }`}
+                                }`}
                             >
                               {member.micMuted ? (
                                 <MicOff className="w-3.5 h-3.5" />
@@ -367,50 +424,6 @@ export default function SquadView({
             </div>
           </div>
 
-          {/* Bottom Bento row displays (Win Rate, On Chain Wins, Global Standing) as in Image 1 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Bento 1: Squad Win Rate */}
-            <div className="bg-[#090E1B] border border-cyan-500/15 rounded-2xl p-5 shadow-[inset_0_0_15px_rgba(6,182,212,0.03)] flex flex-col justify-between h-[104px]">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest font-black flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
-                SQUAD WIN RATE
-              </span>
-              <div className="flex items-baseline gap-2.5 mt-2">
-                <span className="text-2xl font-black text-white font-mono">
-                  {squad.winRate}
-                </span>
-                <span className="text-xs font-mono font-bold text-cyan-400">
-                  {squad.winRateTrend}
-                </span>
-              </div>
-            </div>
-
-            {/* Bento 2: Total On-Chain Wins */}
-            <div className="bg-[#090E1B] border border-amber-500/15 rounded-2xl p-5 shadow-[inset_0_0_15px_rgba(245,158,11,0.03)] flex flex-col justify-between h-[104px]">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest font-black flex items-center gap-1.5">
-                <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                TOTAL ON-CHAIN WINS
-              </span>
-              <div className="mt-2">
-                <span className="text-2xl font-black text-white font-mono">
-                  {squad.totalOnChainWins.toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            {/* Bento 3: Global Standing */}
-            <div className="bg-[#090E1B] border border-rose-500/15 rounded-2xl p-5 shadow-[inset_0_0_15px_rgba(244,63,94,0.03)] flex flex-col justify-between h-[104px]">
-              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest font-black flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-rose-400" />
-                GLOBAL STANDING
-              </span>
-              <div className="mt-2">
-                <span className="text-2xl font-black text-rose-400 font-mono">
-                  {squad.globalStanding}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

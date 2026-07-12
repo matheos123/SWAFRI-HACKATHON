@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { loginSchema, LoginFormData } from "@/shared/schemas";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
@@ -28,7 +29,7 @@ export default function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5 sm:space-y-4">
       {/* API error banner */}
       {error && (
         <div className="rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
@@ -93,12 +94,12 @@ export default function LoginForm() {
           </p>
         )}
         <div className="text-left pt-1">
-          <a
-            href="#"
+          <Link
+            href="/forgot-password"
             className="text-[11px] text-slate-400 hover:text-indigo-400 transition-colors"
           >
             Forgot Password Key?
-          </a>
+          </Link>
         </div>
       </div>
 

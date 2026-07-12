@@ -22,6 +22,7 @@ export default function LeaderboardPage() {
   }
 
   const entries: LeaderboardEntry[] = (users ?? []).map((u) => ({
+    userId: u.userId,
     rank: u.rank,
     username: u.username,
     level: Math.floor(u.points / 1000) + 1,

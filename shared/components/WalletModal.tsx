@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Wallet, ShieldAlert, CheckCircle, Loader2, Unlink } from "lucide-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useSiweAuth } from "@/features/auth/hooks/useSiweAuth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { disconnectWallet } from "@/features/wallet/api/wallet.api";
@@ -16,6 +15,13 @@ interface WalletModalProps {
 
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { address, isConnected } = useAccount();
+  const {
+    connectors,
+    connect,
+    error: connectError,
+    isPending: isWalletConnecting,
+  } = useConnect();
+  const { disconnectAsync } = useDisconnect();
   const { isConnecting, error, verifyAndLink, clearError } = useSiweAuth();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
@@ -39,10 +45,24 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   };
 
   const handleDisconnect = async () => {
+    if (
+      !window.confirm(
+        "Unlink this wallet from your RPS Arena account? You can connect a different wallet immediately afterward.",
+      )
+    ) {
+      return;
+    }
+
     setIsDisconnecting(true);
     setDisconnectError(null);
     try {
       await disconnectWallet();
+      try {
+        await disconnectAsync();
+      } catch {
+        // The backend unlink succeeded. A stale connector must not prevent the
+        // account from reflecting its canonical unlinked state.
+      }
       // Clear wallet fields from store without logging the user out
       const currentUser = useAuthStore.getState().user;
       if (currentUser) {
@@ -53,9 +73,12 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           walletVerifiedAt: null,
         });
       }
-      onClose();
-    } catch (err: any) {
-      setDisconnectError(err?.message || "Failed to disconnect wallet.");
+      // Keep the modal open. Clearing the stored address switches this modal
+      // directly to wallet selection so the user can correct a wrong wallet.
+    } catch (err: unknown) {
+      setDisconnectError(
+        err instanceof Error ? err.message : "Failed to disconnect wallet.",
+      );
     } finally {
       setIsDisconnecting(false);
     }
@@ -104,6 +127,11 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
               </p>
 
+              <p className="mb-4 text-[11px] leading-relaxed text-slate-500">
+                Unlink this address if you connected the wrong wallet. You can
+                select a replacement immediately afterward.
+              </p>
+
               {/* Disconnect error */}
               {disconnectError && (
                 <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
@@ -126,7 +154,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   ) : (
                     <>
                       <Unlink className="w-3.5 h-3.5" />
-                      Disconnect Wallet
+                      Unlink & Change Wallet
                     </>
                   )}
                 </button>
@@ -231,20 +259,42 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             </div>
 
             {/* Error */}
-            {error && (
+            {(error || connectError) && (
               <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-950/20 px-4 py-3 text-xs text-rose-400 font-mono">
-                {error}
+                {error || connectError?.message}
               </div>
             )}
 
-            {/* Step 1: RainbowKit connect */}
+            {/* Step 1: connect directly through Wagmi. Keeping wallet
+                selection inside this modal avoids the nested RainbowKit modal
+                failure seen with React 19 in the account-linking flow. */}
             {!isConnected && (
-              <div className="flex justify-center py-2">
-                <ConnectButton
-                  label="Select Wallet"
-                  showBalance={false}
-                  chainStatus="none"
-                />
+              <div className="space-y-2 py-1">
+                {connectors.map((connector) => {
+                  return (
+                    <button
+                      key={connector.uid}
+                      type="button"
+                      onClick={() => connect({ connector })}
+                      disabled={isWalletConnecting}
+                      className="flex w-full items-center justify-between rounded-xl border border-slate-700/70 bg-[#141C2F]/60 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-200 transition-colors hover:border-cyan-500/40 hover:bg-cyan-950/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Wallet className="h-4 w-4 text-cyan-400" />
+                        {connector.name}
+                      </span>
+                      {isWalletConnecting && (
+                        <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
+                      )}
+                    </button>
+                  );
+                })}
+                {connectors.length === 0 && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3 text-xs text-amber-300">
+                    No compatible wallet was detected. Install a browser wallet
+                    such as MetaMask and refresh this page.
+                  </div>
+                )}
               </div>
             )}
 

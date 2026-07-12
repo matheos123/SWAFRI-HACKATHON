@@ -10,8 +10,13 @@ import {
 
 export function useGameSocket(roomId: string) {
   const { user } = useAuthStore();
-  const { setOpponentMoved, setRoundResult, nextRound, setMatchResult } =
-    useGameStore();
+  const {
+    setOpponentMoved,
+    setRoundResult,
+    nextRound,
+    setMatchResult,
+    setRematchRequested,
+  } = useGameStore();
 
   useEffect(() => {
     if (!roomId || !user) return;
@@ -38,12 +43,17 @@ export function useGameSocket(roomId: string) {
       setMatchResult(data);
     });
 
+    socket.on("game:rematch_requested", () => {
+      setRematchRequested(true);
+    });
+
     return () => {
       socket.off("game:move_received");
       socket.off("game:opponent_moved");
       socket.off("game:round_result");
       socket.off("game:next_round");
       socket.off("game:match_result");
+      socket.off("game:rematch_requested");
     };
   }, [roomId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -60,6 +70,7 @@ export function useGameSocket(roomId: string) {
 
   const requestRematch = () => {
     if (!roomId) return;
+    useGameStore.getState().setRematchRequested(false);
     getSocket().emit("game:rematch", { roomId });
   };
 

@@ -44,9 +44,9 @@ export default function RegisterCard() {
   };
 
   return (
-    <div className="w-full rounded-xl border border-slate-800/80 bg-[#0d111a]/95 p-7 sm:p-8 shadow-2xl backdrop-blur-md">
+    <div className="w-full rounded-xl border border-slate-800/80 bg-[#0d111a]/95 p-4 shadow-2xl backdrop-blur-md sm:p-6 lg:p-8">
       {/* Title */}
-      <div className="mb-6 space-y-1">
+      <div className="mb-5 space-y-1 sm:mb-6">
         <h2 className="text-sm font-semibold tracking-wide text-slate-200 font-mono">
           Create Operator Account
         </h2>
@@ -110,7 +110,7 @@ export default function RegisterCard() {
         </div>
 
         {/* Password + Confirm */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
               Password
@@ -166,7 +166,7 @@ export default function RegisterCard() {
         </button>
       </form>
 
-      <div className="mt-6 text-center space-y-3">
+      <div className="mt-5 space-y-3 text-center sm:mt-6">
         <p className="text-xs text-slate-400">
           Already have an account?{" "}
           <Link

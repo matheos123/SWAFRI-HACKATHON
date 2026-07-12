@@ -37,7 +37,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
 
   if (!activeRoomId) {
     return (
-      <div className="flex-1 min-h-100 flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 text-center shadow-xl">
+      <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-5 text-center shadow-xl sm:min-h-80 sm:p-6">
         <Lock className="w-8 h-8 text-slate-600 mb-3" />
         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">
           Squad Chat Locked
@@ -50,7 +50,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
   }
 
   return (
-    <div className="flex-1 min-h-100 flex flex-col rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl">
+    <div className="flex min-h-72 flex-1 flex-col rounded-xl border border-slate-800 bg-[#0d111a]/80 p-3.5 shadow-xl sm:min-h-80 sm:p-4">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3 shrink-0">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -66,7 +66,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
           <select
             value={activeSquadName ?? squad?.name ?? ""}
             onChange={(event) => setActiveSquad(event.target.value)}
-            className="max-w-28 rounded-lg border border-slate-800 bg-[#07090e] px-2 py-1 text-[9px] font-mono uppercase text-slate-300 outline-none focus:border-cyan-500/50"
+            className="max-w-24 rounded-lg border border-slate-800 bg-[#07090e] px-2 py-1 text-[9px] font-mono uppercase text-slate-300 outline-none focus:border-cyan-500/50 sm:max-w-28"
             title="Switch squad chat"
           >
             {squads.map((item) => (
@@ -85,7 +85,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 space-y-2.5 overflow-y-auto text-xs pr-1 custom-scrollbar">
+      <div className="flex-1 space-y-2.5 overflow-y-auto pr-1 text-xs custom-scrollbar">
         {messages.length === 0 ? (
           <p className="text-[10px] text-slate-600 font-mono text-center mt-8">
             No messages yet. Be the first to speak!
@@ -98,7 +98,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
                 <span className={`text-[9px] font-mono font-bold mb-0.5 ${isMe ? "text-cyan-400" : "text-indigo-400"}`}>
                   {isMe ? "You" : msg.username}
                 </span>
-                <div className={`max-w-[85%] px-3 py-1.5 rounded-xl text-[11px] leading-relaxed ${
+                <div className={`max-w-[88%] rounded-xl px-3 py-1.5 text-[11px] leading-relaxed sm:max-w-[85%] ${
                   isMe 
                     ? "bg-cyan-950/30 border border-cyan-500/20 text-cyan-100" 
                     : "bg-slate-800/60 border border-slate-700/40 text-slate-300"
@@ -113,7 +113,7 @@ export default function LiveChatPanel({ roomId, title = "Squad Chat" }: LiveChat
       </div>
 
       {/* Input */}
-      <div className="mt-3 flex gap-2 shrink-0">
+      <div className="mt-3 flex shrink-0 gap-2">
         <input
           type="text"
           value={input}

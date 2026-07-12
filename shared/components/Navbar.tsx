@@ -2,24 +2,33 @@
 import { Bell, Settings, Wallet, Shield, Menu, X, Swords } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AuthUser } from "@/features/auth/api/auth.api";
 import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
+import NotificationsMenu from "@/features/notifications/components/NotificationsMenu";
+import { getNotifications } from "@/features/notifications/api/notifications.api";
 
 interface NavbarProps {
   user: AuthUser;
   onOpenWallet: () => void;
-  onDisconnectWallet: () => void;
+  onLogout: () => void;
 }
 
 export default function Navbar({
   user,
   onOpenWallet,
-  onDisconnectWallet,
+  onLogout,
 }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const { isQueued, matchmakingStatus, joinQueue, cancelQueue } = useMatchmaking();
+  const notificationsQuery = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => getNotifications(20, 0),
+  });
+  const unreadCount = notificationsQuery.data?.unreadCount ?? 0;
 
   const handleFindMatch = () => {
     if (isQueued) {
@@ -45,17 +54,17 @@ export default function Navbar({
         id="app-navbar"
         className="sticky top-0 z-40 w-full border-b border-[#141C2F]/80 bg-[#0A0E17]/95 backdrop-blur-md px-4 sm:px-8 py-3.5"
       >
-        <div className="w-full flex items-center justify-between gap-4">
+        <div className="flex w-full min-w-0 items-center justify-between gap-3">
           
           {/* Left: Brand Logo */}
           <div
             onClick={() => navigateTo("/dashboard")}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex min-w-0 items-center gap-2 cursor-pointer group"
           >
             <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.3)]">
               <Shield className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="font-sans font-black tracking-[0.2em] text-lg text-white uppercase select-none">
+            <span className="truncate font-sans text-base font-black uppercase tracking-[0.14em] text-white select-none sm:text-lg sm:tracking-[0.2em]">
               RPS <span className="text-cyan-400">Arena</span>
             </span>
           </div>
@@ -94,11 +103,25 @@ export default function Navbar({
             </button>
 
             {/* Icons */}
-            <div className="flex items-center gap-1.5">
-              <button onClick={() => alert("No new notifications.")} className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors">
+            <div className="relative flex items-center gap-1.5">
+              <button
+                onClick={() => setIsNotificationsOpen((open) => !open)}
+                className="relative p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+                {unreadCount ? (
+                  <>
+                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+                    <span className="absolute -right-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[9px] font-black text-[#071018]">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  </>
+                ) : null}
               </button>
+              <NotificationsMenu
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+              />
               <button onClick={() => navigateTo("/settings")} className={`p-2 rounded-lg transition-colors ${pathname === "/settings" ? "text-cyan-400 bg-[#141C2F]/50" : "text-gray-400 hover:text-white hover:bg-gray-800/50"}`}>
                 <Settings className="w-5 h-5" />
               </button>
@@ -119,8 +142,8 @@ export default function Navbar({
           </div>
 
           {/* Mobile Right: Hamburger Menu Toggle Icon Trigger (hidden on md+) */}
-          <div className="md:hidden flex items-center gap-3">
-            <div className="bg-[#101726] border border-gray-800 rounded-md px-2.5 py-1.5 text-xs font-mono font-bold text-cyan-300">
+          <div className="md:hidden flex shrink-0 items-center gap-2">
+            <div className="max-w-24 truncate rounded-md border border-gray-800 bg-[#101726] px-2 py-1.5 text-[10px] font-mono font-bold text-cyan-300 sm:max-w-none sm:px-2.5 sm:text-xs">
               {user.points.toLocaleString()} PTS
             </div>
             
@@ -139,7 +162,7 @@ export default function Navbar({
       {/* MOBILE COLLAPSED DRAWER DRAWER OVERLAY   */}
       {/* ========================================== */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-[61px] z-30 bg-[#070B13]/98 border-t border-[#141C2F]/40 flex flex-col p-6 animate-fade-in animate-duration-200">
+        <div className="md:hidden fixed inset-0 top-[61px] z-30 flex flex-col overflow-y-auto bg-[#070B13]/98 p-4 border-t border-[#141C2F]/40 animate-fade-in animate-duration-200 sm:p-6">
           
           {/* Mobile Matchmaking Interface Button */}
           <button
@@ -190,12 +213,46 @@ export default function Navbar({
               </span>
               <span className="text-xs text-cyan-600">➔</span>
             </button>
+
+            <button
+              onClick={() => {
+                setIsNotificationsOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between rounded-lg border border-slate-800/60 bg-[#101726]/40 p-3.5 text-left"
+            >
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider text-gray-300">
+                🔔 Notifications
+              </span>
+              <span className="text-xs text-cyan-400">
+                {unreadCount ? unreadCount : "➔"}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onLogout();
+              }}
+              className="w-full flex items-center justify-between rounded-lg border border-rose-500/20 bg-rose-950/10 p-3.5 text-left text-rose-300"
+            >
+              <span className="text-xs font-mono font-semibold uppercase tracking-wider">
+                ⏻ Logout
+              </span>
+              <span className="text-xs text-rose-400">➔</span>
+            </button>
           </div>
 
           {/* Alerts / System Tray Indicator Footer */}
           <div className="mt-auto border-t border-slate-900 pt-4 flex items-center justify-between text-[11px] font-mono text-slate-500">
             <span>Security Framework: v1.0.4</span>
-            <button onClick={() => alert("No new alerts.")} className="text-cyan-500 underline uppercase tracking-widest text-[10px] font-bold">
+            <button
+              onClick={() => {
+                setIsNotificationsOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+              className="text-cyan-500 underline uppercase tracking-widest text-[10px] font-bold"
+            >
               Check Alerts
             </button>
           </div>

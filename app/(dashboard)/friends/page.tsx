@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import {
   Users,
@@ -41,11 +41,13 @@ export default function FriendsPage() {
 
   const {
     squad,
+    squads,
+    activeSquadName,
     squadMembers,
+    setActiveSquad,
     initializeSquad,
-    disbandSquad,
     updateSquadName,
-    updateSquadPrivacy,
+    addMember,
     kickMember,
     toggleMute,
   } = useSquadStore();
@@ -83,6 +85,28 @@ export default function FriendsPage() {
       username: user.username,
     });
   };
+
+  const uniqueFriends = useMemo(() => {
+    const seen = new Set<string>();
+
+    return friends.filter((friend) => {
+      const key = friend.friendId || friend.id;
+      if (!key || seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }, [friends]);
+
+  const availableFriends = useMemo(
+    () =>
+      uniqueFriends.filter(
+        (friend) => !squadMembers.some((member) => member.id === friend.friendId),
+      ),
+    [uniqueFriends, squadMembers],
+  );
 
   if (!user) return null;
 
@@ -148,7 +172,7 @@ export default function FriendsPage() {
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          Friends ({friends.length})
+          Friends ({uniqueFriends.length})
         </button>
         <button
           onClick={() => setActiveTab("requests")}
@@ -179,12 +203,21 @@ export default function FriendsPage() {
           {activeTab === "squad" && (
             <SquadView
               squad={squad}
+              squads={squads}
+              activeSquadName={activeSquadName}
               squadMembers={squadMembers}
+              availableFriends={availableFriends}
+              onSelectSquad={setActiveSquad}
               onUpdateSquadName={updateSquadName}
-              onUpdateSquadPrivacy={updateSquadPrivacy}
+              onAddMember={(friend) =>
+                addMember({
+                  id: friend.friendId,
+                  username: friend.username,
+                  avatarUrl: friend.avatar ?? undefined,
+                })
+              }
               onKickMember={kickMember}
               onToggleMute={toggleMute}
-              onDisbandSquad={disbandSquad}
               onInitializeSquad={handleInitializeSquad}
             />
           )}
@@ -192,7 +225,7 @@ export default function FriendsPage() {
           {/* Friends list */}
           {activeTab === "friends" && (
             <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 overflow-hidden">
-              {friends.length === 0 ? (
+              {uniqueFriends.length === 0 ? (
                 <div className="p-12 text-center">
                   <Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 font-mono">
@@ -201,9 +234,9 @@ export default function FriendsPage() {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-900/40">
-                  {friends.map((f) => (
+                  {uniqueFriends.map((f, index) => (
                     <motion.div
-                      key={f.id}
+                      key={`${f.friendId}-${index}`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className="flex items-center justify-between px-5 py-4 hover:bg-[#101726]/30 transition-colors"

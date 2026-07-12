@@ -15,6 +15,7 @@ import {
   Swords,
 } from "lucide-react";
 import { PlayerProfile, Badge, Match } from "@/shared/types";
+import Image from 'next/image'
 
 interface ProfileViewProps {
   profile: PlayerProfile;
@@ -67,7 +68,7 @@ export default function ProfileView({
             {/* Holographic Avatar Frame */}
             <div className="relative shrink-0">
               <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-slate-900/60 p-1 shadow-[0_0_20px_rgba(6,182,212,0.15)] group">
-                <img
+                <Image
                   src="avatar.png"
                   alt={profile.username}
                   referrerPolicy="no-referrer"

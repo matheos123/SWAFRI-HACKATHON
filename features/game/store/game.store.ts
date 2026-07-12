@@ -37,6 +37,7 @@ interface GameState {
   opponentMoved: boolean;
   roundResult: RoundResult | null;
   matchResult: MatchResult | null;
+  rematchRequested: boolean;
 
   myWins: number;
   opponentWins: number;
@@ -68,6 +69,7 @@ interface GameState {
   setRoundResult: (result: RoundResult) => void;
   nextRound: (roundNumber: number) => void;
   setMatchResult: (result: MatchResult) => void;
+  setRematchRequested: (requested: boolean) => void;
   resetGame: () => void;
 }
 
@@ -83,6 +85,7 @@ export const useGameStore = create<GameState>((set) => ({
   opponentMoved: false,
   roundResult: null,
   matchResult: null,
+  rematchRequested: false,
 
   myWins: 0,
   opponentWins: 0,
@@ -103,6 +106,7 @@ export const useGameStore = create<GameState>((set) => ({
       opponentMoved: false,
       roundResult: null,
       matchResult: null,
+      rematchRequested: false,
       myWins: 0,
       opponentWins: 0,
       isSpectating: false,
@@ -126,6 +130,7 @@ export const useGameStore = create<GameState>((set) => ({
       opponentMoved: false,
       roundResult: null,
       matchResult: null,
+      rematchRequested: false,
       isSpectating: true,
     }),
 
@@ -133,12 +138,12 @@ export const useGameStore = create<GameState>((set) => ({
   setOpponentMoved: () => set({ opponentMoved: true }),
 
   setRoundResult: (result) =>
-    set((state) => ({
+    set({
       roundResult: result,
       phase: "reveal",
       myWins: result.player1Wins,
       opponentWins: result.player2Wins,
-    })),
+    }),
 
   nextRound: (roundNumber) =>
     set({
@@ -147,9 +152,12 @@ export const useGameStore = create<GameState>((set) => ({
       myMove: null,
       opponentMoved: false,
       roundResult: null,
+      matchResult: null,
+      rematchRequested: false,
     }),
 
   setMatchResult: (result) => set({ matchResult: result, phase: "finished" }),
+  setRematchRequested: (requested) => set({ rematchRequested: requested }),
 
   resetGame: () =>
     set({
@@ -163,6 +171,7 @@ export const useGameStore = create<GameState>((set) => ({
       opponentMoved: false,
       roundResult: null,
       matchResult: null,
+      rematchRequested: false,
       myWins: 0,
       opponentWins: 0,
       isSpectating: false,

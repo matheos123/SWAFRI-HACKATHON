@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { RotateCcw, Home, Shield } from "lucide-react";
+import { RotateCcw, Home } from "lucide-react";
 import { useGameStore, Move } from "@/features/game/store/game.store";
 import { useGameSocket } from "@/features/game/hooks/useGameSocket";
 import { useSocketStore } from "@/features/game/store/socket.store";
@@ -56,6 +56,7 @@ export default function MatchPage() {
     opponentMoved,
     roundResult,
     matchResult,
+    rematchRequested,
     myWins,
     opponentWins,
     opponent,
@@ -156,9 +157,14 @@ export default function MatchPage() {
             <div className="flex gap-3">
               <button
                 onClick={requestRematch}
-                className="flex-1 py-3 rounded-xl border border-indigo-500/30 text-indigo-300 text-xs font-bold tracking-widest uppercase hover:bg-indigo-950/20 transition-colors flex items-center justify-center gap-2"
+                className={`flex-1 py-3 rounded-xl border text-xs font-bold tracking-widest uppercase transition-colors flex items-center justify-center gap-2 ${
+                  rematchRequested
+                    ? "border-emerald-500/40 bg-emerald-950/20 text-emerald-300 animate-pulse"
+                    : "border-indigo-500/30 text-indigo-300 hover:bg-indigo-950/20"
+                }`}
               >
-                <RotateCcw className="w-4 h-4" /> Rematch
+                <RotateCcw className="w-4 h-4" />
+                {rematchRequested ? "Accept Rematch" : "Request Rematch"}
               </button>
               <button
                 onClick={handleLeave}

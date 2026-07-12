@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import { Eye, Loader2, Swords, Radio } from "lucide-react";
 import MatchArena from "@/features/lobby/components/MatchArena";
-import MatchHistory from "@/features/history/MatchHistory";
-import LeaderboardPanel from "@/features/leaderboard/components/LeaderboardPanel";
 // import PlayerStatsPanel from "@/features/leaderboard/PlayerStatusPanel";
 import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
 import { useSpectator } from "@/features/game/hooks/useSpectator";
@@ -24,7 +22,7 @@ function SpectatorPanel() {
 
   useEffect(() => {
     fetchRooms();
-  }, []); 
+  }, [fetchRooms]); 
 
   return (
     <div className="rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl">
@@ -100,9 +98,9 @@ function SpectatorPanel() {
 
 export default function LobbyPage() {
   return (
-    <div className="w-full grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
+    <div className="w-full grid grid-cols-1 gap-4 items-start lg:gap-5 2xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
       {/* LEFT: Match arena + history/leaderboard panels */}
-      <div className="xl:col-span-3 space-y-6">
+      <div className="space-y-4 lg:space-y-5">
         <MatchArena />
         {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <MatchHistory />
@@ -111,11 +109,11 @@ export default function LobbyPage() {
       </div>
 
       {/* RIGHT: Stats + spectator + chat */}
-      <div className="xl:col-span-1 space-y-6 h-full flex flex-col">
+      <div className="space-y-4 lg:space-y-5 flex flex-col">
         {/* <PlayerStatsPanel /> */}
         <SpectatorPanel />
-        <LiveChatPanel  />
-          </div>
+        <LiveChatPanel />
+      </div>
     </div>
   );
 }

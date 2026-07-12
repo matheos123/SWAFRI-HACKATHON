@@ -15,9 +15,44 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RPS Arena | Play, Win, Earn, Own",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
+  title: {
+    default: "RPS Arena | Real-Time Web3 Rock Paper Scissors",
+    template: "%s | RPS Arena",
+  },
   description:
-    "A real-time multiplayer Web3 Rock-Paper-Scissors gaming platform.",
+    "Play real-time multiplayer Rock Paper Scissors, compete in ranked Web3 matches, join squads, earn achievements, and climb the global leaderboard.",
+  applicationName: "RPS Arena",
+  keywords: [
+    "Rock Paper Scissors",
+    "multiplayer game",
+    "Web3 game",
+    "blockchain gaming",
+    "RPS Arena",
+    "Base Sepolia",
+    "online game",
+  ],
+  authors: [{ name: "RPS Arena" }],
+  creator: "RPS Arena",
+  publisher: "RPS Arena",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "RPS Arena",
+    title: "RPS Arena | Play, Win, Earn, Own",
+    description:
+      "Battle players worldwide in real-time Web3 Rock Paper Scissors matches.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RPS Arena | Play, Win, Earn, Own",
+    description:
+      "Battle players worldwide in real-time Web3 Rock Paper Scissors matches.",
+  },
+  category: "gaming",
 };
 
 export default function RootLayout({
@@ -31,7 +66,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${jetbrainsMono.variable} dark h-full`}
     >
-      <body className="font-sans bg-[#090b11] text-slate-200 min-h-screen h-full w-full relative overflow-x-hidden antialiased">
+      <body className="font-sans bg-[#090b11] text-slate-200 min-h-screen h-full w-full max-w-full relative overflow-x-clip antialiased">
         {/* Persistent Ambient Background Glows */}
         <div className="pointer-events-none absolute top-[-10%] left-[-10%] h-150 w-150 rounded-full bg-slate-800/10 blur-[150px]" />
         <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-150 w-150 rounded-full bg-indigo-950/10 blur-[150px]" />

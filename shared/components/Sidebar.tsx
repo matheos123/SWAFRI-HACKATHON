@@ -156,13 +156,16 @@ export default function Sidebar({
       {/* ======================================================== */}
       {/* 3. MOBILE VIEW: BOTTOM HUD TABS CONTROL BAR (below md)    */}
       {/* ======================================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070A12]/95 border-t border-[#141C2F]/80 backdrop-blur-lg px-2 pb-safe-bottom">
-        <div className="grid grid-cols-5 items-center justify-between py-2 text-center relative">
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[#141C2F]/80 bg-[#070A12]/95 px-1.5 backdrop-blur-lg"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.35rem)" }}
+      >
+        <div className="relative grid grid-cols-5 items-end justify-between py-2 text-center">
           
           {/* Tab 1: Leaderboard */}
           <button
             onClick={() => router.push("/leaderboard")}
-            className={`flex flex-col items-center gap-1 text-[10px] font-bold font-sans uppercase tracking-wider ${
+            className={`flex flex-col items-center gap-1 text-[9px] font-bold font-sans uppercase tracking-[0.12em] ${
               pathname === "/leaderboard" ? "text-purple-400" : "text-gray-500"
             }`}
           >
@@ -173,7 +176,7 @@ export default function Sidebar({
           {/* Tab 2: Squad Command / Friends */}
           <button
             onClick={() => router.push("/friends")}
-            className={`flex flex-col items-center gap-1 text-[10px] font-bold font-sans uppercase tracking-wider ${
+            className={`flex flex-col items-center gap-1 text-[9px] font-bold font-sans uppercase tracking-[0.12em] ${
               pathname === "/friends" ? "text-purple-400" : "text-gray-500"
             }`}
           >
@@ -182,23 +185,23 @@ export default function Sidebar({
           </button>
 
           {/* Central Elevated Tab 3: Core Battle Lobby Arena Link */}
-          <div className="relative -top-5 flex justify-center">
+          <div className="relative -top-4 flex justify-center">
             <button
               onClick={() => router.push("/lobby")}
-              className={`h-14 w-14 rounded-full flex items-center justify-center text-white border-2 shadow-xl transform active:scale-95 transition-all ${
+              className={`flex h-12 w-12 items-center justify-center rounded-full border-2 text-white shadow-xl transform transition-all active:scale-95 sm:h-14 sm:w-14 ${
                 pathname === "/lobby"
                   ? "bg-purple-600 border-purple-400 shadow-purple-500/30 scale-105"
                   : "bg-linear-to-b from-indigo-600 to-slate-900 border-indigo-500 shadow-indigo-500/10"
               }`}
             >
-              <Sword className="w-6 h-6 transform -rotate-45" />
+              <Sword className="h-5 w-5 transform -rotate-45 sm:h-6 sm:w-6" />
             </button>
           </div>
 
           {/* Tab 4: Profile */}
           <button
             onClick={() => router.push("/profile")}
-            className={`flex flex-col items-center gap-1 text-[10px] font-bold font-sans uppercase tracking-wider ${
+            className={`flex flex-col items-center gap-1 text-[9px] font-bold font-sans uppercase tracking-[0.12em] ${
               pathname === "/profile" ? "text-purple-400" : "text-gray-500"
             }`}
           >
@@ -209,7 +212,7 @@ export default function Sidebar({
           {/* Tab 5: Settings / Control Panel */}
           <button
             onClick={() => router.push("/settings")}
-            className={`flex flex-col items-center gap-1 text-[10px] font-bold font-sans uppercase tracking-wider ${
+            className={`flex flex-col items-center gap-1 text-[9px] font-bold font-sans uppercase tracking-[0.12em] ${
               pathname === "/settings" ? "text-purple-400" : "text-gray-500"
             }`}
           >

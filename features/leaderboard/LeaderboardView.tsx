@@ -1,6 +1,6 @@
 "use client"
-import { motion } from "motion/react";
-import { Trophy, Shield, User, Award, Circle } from "lucide-react";
+import Link from "next/link";
+import { Circle } from "lucide-react";
 import { LeaderboardEntry } from "@/shared/types";
 
 interface LeaderboardViewProps {
@@ -25,8 +25,50 @@ export default function LeaderboardView({
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-162.5">
+        <div className="space-y-3 sm:hidden">
+          {entries.map((entry) => {
+            const isCurrentUser = entry.username === currentUsername;
+            return (
+              <article
+                key={entry.rank}
+                className={`rounded-xl border p-4 ${
+                  isCurrentUser
+                    ? "border-cyan-500/30 bg-cyan-950/10"
+                    : "border-slate-800 bg-slate-950/20"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500">
+                      Rank #{entry.rank}
+                    </p>
+                    <Link
+                      href={entry.userId ? `/users/${entry.userId}` : "#"}
+                      className="mt-1 block truncate text-sm font-bold text-white hover:text-cyan-300"
+                    >
+                      {entry.username}
+                    </Link>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Level {entry.level}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-slate-900 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                    {entry.winRate}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-white">{entry.score.toLocaleString()} RP</span>
+                  <span className="text-[11px] uppercase tracking-wider text-slate-400">
+                    {entry.status}
+                  </span>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="hidden sm:block overflow-x-hidden">
+          <table className="w-full table-fixed text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-900 pb-3 text-[10px] font-mono text-gray-400 uppercase tracking-widest">
                 <th className="py-3 px-4 text-center">Rank</th>
@@ -41,7 +83,7 @@ export default function LeaderboardView({
                 const isCurrentUser = entry.username === currentUsername;
 
                 // Rank Badges
-                const renderRankBadge = (rank: number, type: string) => {
+                const renderRankBadge = (rank: number) => {
                   if (rank === 1)
                     return (
                       <span className="text-yellow-400 filter drop-shadow-[0_0_4px_rgba(234,179,8,0.3)]">
@@ -68,7 +110,7 @@ export default function LeaderboardView({
                   >
                     {/* Rank cell */}
                     <td className="py-4 px-4 font-bold text-center w-24">
-                      {renderRankBadge(entry.rank, entry.badgeType)}
+                      {renderRankBadge(entry.rank)}
                     </td>
 
                     {/* Commander user & level info */}
@@ -84,13 +126,14 @@ export default function LeaderboardView({
                           {entry.username[0]}
                         </div>
                         <div>
-                          <span
+                          <Link
+                            href={entry.userId ? `/users/${entry.userId}` : "#"}
                             className={
-                              isCurrentUser ? "text-cyan-300 font-bold" : ""
+                              `${isCurrentUser ? "text-cyan-300 font-bold" : ""} hover:text-cyan-300 hover:underline`
                             }
                           >
                             {entry.username}
-                          </span>
+                          </Link>
                           {isCurrentUser && (
                             <span className="ml-1.5 px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/30 text-[9px] font-mono text-cyan-400 font-bold uppercase">
                               YOU

@@ -2,19 +2,27 @@
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useAppState } from "@/shared/context/AppStateContext";
 import { motion } from "motion/react";
+import { useQuery } from "@tanstack/react-query";
+import { replayHistoryEntryToMatch, getMyReplayHistory } from "@/features/replay/api/replay.api";
+import MatchHistoryTable from "@/features/replay/components/MatchHistoryTable";
 import {
   ShieldCheck,
   Award,
   TrendingUp,
   Calendar,
   Swords,
-  Wallet,
-  Zap,
 } from "lucide-react";
+import BadgeInventory from "@/features/achievements/components/BadgeInventory";
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
-  const { setIsWalletModalOpen } = useAppState();
+  const { setIsWalletModalOpen, handleOpenTxDetail } = useAppState();
+
+  const historyQuery = useQuery({
+    queryKey: ["replay", "history", "me", user?.id],
+    queryFn: () => getMyReplayHistory(12, 0, user!.id),
+    enabled: Boolean(user?.id),
+  });
 
   if (!user) return null;
 
@@ -124,7 +132,14 @@ export default function ProfilePage() {
                 </span>
               </div>
             </div>
-            {!user.walletAddress && (
+            {user.walletAddress ? (
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="w-full mt-3 py-2 rounded-lg border border-rose-500/30 text-rose-300 text-[10px] font-bold tracking-widest uppercase hover:bg-rose-950/20 hover:border-rose-500/50 transition-colors"
+              >
+                Unlink / Change Wallet
+              </button>
+            ) : (
               <button
                 onClick={() => setIsWalletModalOpen(true)}
                 className="w-full mt-3 py-1.5 rounded-lg border border-cyan-500/30 text-cyan-300 text-[10px] font-bold tracking-widest uppercase hover:bg-cyan-500/10 transition-colors"
@@ -188,6 +203,39 @@ export default function ProfilePage() {
           </motion.div>
         ))}
       </div>
+
+      <BadgeInventory />
+
+      <section className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-5 sm:p-6">
+        <div className="mb-4 flex items-center justify-between border-b border-gray-800/40 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-widest">
+              Ranked Match History
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Your recent backend-synced replays and match receipts.
+            </p>
+          </div>
+        </div>
+
+        <MatchHistoryTable
+          entries={historyQuery.data ?? []}
+          isLoading={historyQuery.isLoading}
+          error={
+            historyQuery.error instanceof Error
+              ? historyQuery.error.message
+              : null
+          }
+          emptyMessage="No ranked matches have been saved for this account yet."
+          txEnabled
+          onOpenTx={(matchId) => {
+            const entry = historyQuery.data?.find((item) => item.matchId === matchId);
+            if (entry) {
+              handleOpenTxDetail(replayHistoryEntryToMatch(entry));
+            }
+          }}
+        />
+      </section>
 
       {/* Account info */}
       <div className="rounded-2xl border border-slate-800/80 bg-[#0C1220]/50 p-5 sm:p-6">

@@ -17,6 +17,7 @@ function useRoundTimer(active: boolean, seconds = 30) {
   const [timeLeft, setTimeLeft] = useState(seconds);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimeLeft(seconds);
     if (!active) return;
     const interval = setInterval(() => {
@@ -33,6 +34,7 @@ function useQueueTimer(active: boolean) {
 
   useEffect(() => {
     if (!active) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setElapsed(0);
       return;
     }
@@ -64,6 +66,7 @@ export default function MatchArena() {
     opponentMoved,
     roundResult,
     matchResult,
+    rematchRequested,
     myWins,
     opponentWins,
     opponent,
@@ -103,7 +106,7 @@ export default function MatchArena() {
   // Matchmaking / Idle Menu 
   if (!matchId) {
     return (
-      <div className="w-full rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 shadow-xl relative overflow-hidden text-center min-h-[300px] flex flex-col justify-center">
+      <div className="relative flex min-h-[260px] w-full flex-col justify-center overflow-hidden rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 text-center shadow-xl sm:min-h-[300px] sm:p-6">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
         
         <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-slate-400 font-mono mb-6">
@@ -125,7 +128,7 @@ export default function MatchArena() {
             </div>
             <button
               onClick={cancelQueue}
-              className="py-3 px-8 rounded-xl border border-rose-500/30 text-rose-400 text-xs font-bold tracking-widest uppercase hover:bg-rose-950/20 hover:border-rose-500/50 transition-all font-mono select-none"
+              className="mx-auto w-full max-w-xs rounded-xl border border-rose-500/30 px-6 py-3 text-xs font-bold uppercase tracking-widest text-rose-400 transition-all hover:border-rose-500/50 hover:bg-rose-950/20 font-mono select-none"
             >
               Cancel Matchmaking
             </button>
@@ -138,7 +141,7 @@ export default function MatchArena() {
               </p>
               <button
                 onClick={joinQueue}
-                className="w-full py-4 px-6 rounded-xl bg-[#A5C3F9] text-[#0A0F1D] font-black text-xs uppercase tracking-widest hover:bg-[#B7D2FC] shadow-[0_0_20px_rgba(165,195,249,0.15)] active:scale-95 transition-all font-mono select-none"
+                className="w-full rounded-xl bg-[#A5C3F9] px-6 py-4 text-xs font-black uppercase tracking-widest text-[#0A0F1D] shadow-[0_0_20px_rgba(165,195,249,0.15)] transition-all hover:bg-[#B7D2FC] active:scale-95 font-mono select-none"
               >
                 Find Combat Match
               </button>
@@ -155,15 +158,13 @@ export default function MatchArena() {
     const isDraw = matchResult.winnerId === null;
     
     const player1Won = matchResult.winnerId === player1?.userId;
-    const player2Won = matchResult.winnerId === player2?.userId;
-
     const handleLeave = () => {
       resetGame();
       resetMatchmaking();
     };
 
     return (
-      <div className="w-full rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 shadow-xl relative overflow-hidden text-center min-h-[300px] flex flex-col justify-center">
+      <div className="relative flex min-h-[260px] w-full flex-col justify-center overflow-hidden rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 text-center shadow-xl sm:min-h-[300px] sm:p-6">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
         
         <div className={`text-6xl mb-4 ${iWon || (isSpectating && !isDraw) ? "animate-bounce" : ""}`}>
@@ -207,7 +208,7 @@ export default function MatchArena() {
           </div>
         </div>
 
-        <div className="max-w-xs mx-auto w-full">
+        <div className="mx-auto w-full max-w-xs">
           {isSpectating && !isDraw && (
             <button
               onClick={() => {
@@ -218,6 +219,18 @@ export default function MatchArena() {
               className="mb-3 w-full py-3 rounded-xl bg-[#A5C3F9] text-[#0A0F1D] text-xs font-black tracking-widest uppercase hover:bg-[#B7D2FC] transition-colors"
             >
               Challenge Winner
+            </button>
+          )}
+          {!isSpectating && (
+            <button
+              onClick={requestRematch}
+              className={`mb-3 w-full py-3 rounded-xl border text-xs font-black tracking-widest uppercase transition-colors ${
+                rematchRequested
+                  ? "border-emerald-500/40 bg-emerald-950/20 text-emerald-300 animate-pulse"
+                  : "border-indigo-500/30 text-indigo-300 hover:bg-indigo-950/20"
+              }`}
+            >
+              {rematchRequested ? "Accept Rematch" : "Request Rematch"}
             </button>
           )}
           <button
@@ -233,10 +246,10 @@ export default function MatchArena() {
 
   // ── Active Combat Arena Screen ──
   return (
-    <div className="w-full rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 shadow-xl relative overflow-hidden">
+      <div className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl sm:p-5 lg:p-6">
       <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
 
-      <h2 className="text-center text-xs font-bold tracking-[0.3em] uppercase text-slate-400 font-mono mb-6 flex items-center justify-center gap-1.5">
+      <h2 className="mb-5 flex flex-wrap items-center justify-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400 font-mono sm:mb-6 sm:text-xs sm:tracking-[0.3em]">
         {isSpectating ? (
           <>
             <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
@@ -249,10 +262,10 @@ export default function MatchArena() {
       </h2>
 
       {/* Players VS */}
-      <div className="flex items-center justify-around mb-8 select-none">
+      <div className="mb-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 select-none sm:mb-8 sm:gap-5">
         {/* Left Side: Me or Player 1 */}
         <div className="text-center space-y-2">
-          <div className="h-16 w-16 rounded-xl bg-slate-900 border border-indigo-500/40 flex items-center justify-center shadow-lg shadow-indigo-500/5 text-2xl overflow-hidden shrink-0 mx-auto">
+          <div className="mx-auto flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-indigo-500/40 bg-slate-900 text-xl shadow-lg shadow-indigo-500/5 sm:h-16 sm:w-16 sm:text-2xl">
             {isSpectating ? (
               <span>{player1?.username[0]?.toUpperCase() ?? "?"}</span>
             ) : (
@@ -263,41 +276,41 @@ export default function MatchArena() {
               )
             )}
           </div>
-          <div className="font-mono text-[10px] font-bold text-slate-300 uppercase truncate max-w-[80px] mx-auto">
+          <div className="mx-auto max-w-[76px] truncate font-mono text-[9px] font-bold uppercase text-slate-300 sm:max-w-[90px] sm:text-[10px]">
             {isSpectating ? player1?.username : user?.username}
           </div>
-          <div className="text-[8px] text-indigo-400 font-bold tracking-wider">
+          <div className="text-[8px] font-bold tracking-wider text-indigo-400">
             {isSpectating ? "PLAYER 1" : `${user?.points.toLocaleString()} PTS`}
           </div>
         </div>
 
         {/* Center: Scores and Info */}
         <div className="text-center space-y-1">
-          <div className="text-xl font-black font-mono text-white">
+          <div className="text-lg font-black font-mono text-white sm:text-xl">
             <span className="text-indigo-400">{myWins}</span>
             <span className="text-slate-600 mx-1">–</span>
             <span className="text-rose-400">{opponentWins}</span>
           </div>
-          <div className="rounded-full bg-slate-900 border border-slate-800 px-2 py-0.5 text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="rounded-full border border-slate-800 bg-slate-900 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-slate-400">
             Round {currentRound}
           </div>
           {phase === "selecting" && !isSpectating && (
             <div className={`text-[10px] font-mono font-medium pt-1 ${timeLeft <= 5 ? "text-rose-400 animate-pulse" : "text-amber-400/90"}`}>
-              ⏱️ 00:{String(timeLeft).padStart(2, "0")}
+              00:{String(timeLeft).padStart(2, "0")}
             </div>
           )}
         </div>
 
         {/* Right Side: Opponent or Player 2 */}
         <div className="text-center space-y-2">
-          <div className="h-16 w-16 rounded-xl bg-slate-900 border border-rose-500/40 flex items-center justify-center shadow-lg shadow-red-500/5 text-2xl overflow-hidden shrink-0 mx-auto">
+          <div className="mx-auto flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-rose-500/40 bg-slate-900 text-xl shadow-lg shadow-red-500/5 sm:h-16 sm:w-16 sm:text-2xl">
             {isSpectating ? (
               <span>{player2?.username[0]?.toUpperCase() ?? "🥷"}</span>
             ) : (
               "🥷"
             )}
           </div>
-          <div className="font-mono text-[10px] font-bold text-slate-300 uppercase truncate max-w-[80px] mx-auto">
+          <div className="mx-auto max-w-[76px] truncate font-mono text-[9px] font-bold uppercase text-slate-300 sm:max-w-[90px] sm:text-[10px]">
             {isSpectating ? player2?.username : opponent?.username ?? "Opponent"}
           </div>
           <div className="text-[8px] text-slate-500 font-bold tracking-wider">
@@ -313,14 +326,14 @@ export default function MatchArena() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-6 rounded-xl bg-slate-900/60 border border-slate-800 p-4 text-center animate-fade-in"
+            className="mb-5 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center animate-fade-in sm:mb-6 sm:p-4"
           >
-            <div className="flex items-center justify-center gap-8 mb-3">
-              <div className="relative w-16 h-16">
+            <div className="mb-3 flex items-center justify-center gap-4 sm:gap-8">
+              <div className="relative h-12 w-12 sm:h-16 sm:w-16">
                 <Image src={MOVE_ICON[roundResult.player1Move]} alt={roundResult.player1Move} fill className="object-contain" sizes="64px" />
               </div>
-              <span className="text-base font-black text-slate-600">vs</span>
-              <div className="relative w-16 h-16">
+              <span className="text-sm font-black text-slate-600 sm:text-base">vs</span>
+              <div className="relative h-12 w-12 sm:h-16 sm:w-16">
                 <Image src={MOVE_ICON[roundResult.player2Move]} alt={roundResult.player2Move} fill className="object-contain" sizes="64px" />
               </div>
             </div>
@@ -369,14 +382,14 @@ export default function MatchArena() {
         </div>
       ) : phase === "selecting" ? (
         <>
-          <div className="max-w-md mx-auto grid grid-cols-3 gap-4">
+          <div className="mx-auto grid max-w-md grid-cols-3 gap-2.5 sm:gap-4">
             {MOVE_ACTIONS.map((act) => (
               <button
                 key={act.name}
                 onClick={() => submitMove(act.name)}
-                className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-800 hover:bg-indigo-950/20 hover:border-indigo-500/60 transition-all group active:scale-95"
+                className="group flex flex-col items-center justify-center rounded-xl border border-slate-800 p-2.5 transition-all hover:border-indigo-500/60 hover:bg-indigo-950/20 active:scale-95 sm:p-3"
               >
-                <div className="relative w-16 h-16 mb-2 transform group-hover:scale-110 transition-transform">
+                <div className="relative mb-2 h-12 w-12 transform transition-transform group-hover:scale-110 sm:h-16 sm:w-16">
                   <Image
                     src={act.src}
                     alt={act.label}
@@ -386,7 +399,7 @@ export default function MatchArena() {
                     sizes="64px"
                   />
                 </div>
-                <span className="text-[9px] font-bold tracking-widest uppercase text-slate-400 group-hover:text-slate-200 transition-colors">
+                <span className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400 transition-colors group-hover:text-slate-200 sm:text-[9px] sm:tracking-widest">
                   {act.label}
                 </span>
               </button>
@@ -411,11 +424,11 @@ export default function MatchArena() {
         </div>
       )}
       {/* Chat Sidebar - Only if user has a squad */}
-      <div className="xl:col-span-4">
+      <div className="mt-5 sm:mt-6">
         {squad ? (
           <LiveChatPanel title={isSpectating ? "Squad Watch Chat" : "Squad Battle Chat"} />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-8 text-center">
+          <div className="flex h-full min-h-48 flex-col items-center justify-center rounded-xl border border-slate-800 bg-[#0d111a]/80 p-6 text-center sm:p-8">
             <Shield className="w-12 h-12 text-slate-600 mb-4" />
             <p className="text-slate-400">Squad Chat Unavailable</p>
             <p className="text-[10px] text-slate-600 mt-2">Join or create a squad to chat during matches</p>

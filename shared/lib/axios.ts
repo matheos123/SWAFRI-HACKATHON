@@ -1,9 +1,13 @@
 import axios from "axios";
 
+const remoteApiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://rps-arena-2q2f.onrender.com/api/v1";
+
 const apiClient = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_URL ||
-    "https://rps-arena-2q2f.onrender.com/api/v1",
+  // Browser requests stay same-origin and are proxied by the Next.js rewrite.
+  // Server-side callers can still reach the backend directly.
+  baseURL: typeof window === "undefined" ? remoteApiUrl : "/backend-api",
   headers: {
     "Content-Type": "application/json",
   },

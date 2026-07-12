@@ -40,7 +40,7 @@ export default function Web3Providers() {
         onClick={loginWithWallet}
         disabled={isLoading}
         type="button"
-        className="flex w-full items-center justify-between rounded-md border border-slate-800/60 bg-[#141926] px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-[#1a2030] hover:border-slate-700/80 group active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="group flex w-full items-center justify-between rounded-md border border-slate-800/60 bg-[#141926] px-3 py-3 text-sm font-medium text-slate-300 transition-all hover:border-slate-700/80 hover:bg-[#1a2030] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
       >
         <div className="flex items-center gap-3">
           <div className="flex h-6 w-6 items-center justify-center rounded-[4px] bg-[#e27625] shrink-0">
@@ -100,7 +100,7 @@ export default function Web3Providers() {
         onClick={loginWithWallet}
         disabled={isLoading}
         type="button"
-        className="flex w-full items-center justify-between rounded-md border border-slate-800/60 bg-[#141926] px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-[#1a2030] hover:border-slate-700/80 group active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="group flex w-full items-center justify-between rounded-md border border-slate-800/60 bg-[#141926] px-3 py-3 text-sm font-medium text-slate-300 transition-all hover:border-slate-700/80 hover:bg-[#1a2030] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
       >
         <div className="flex items-center gap-3">
           <div className="flex h-6 w-6 items-center justify-center rounded-[4px] bg-[#0052ff] shrink-0">

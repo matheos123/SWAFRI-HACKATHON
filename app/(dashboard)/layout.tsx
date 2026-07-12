@@ -26,10 +26,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     isTxModalOpen,
     setIsTxModalOpen,
     selectedTxMatch,
-    isQueueActive,
     handleConnectWallet,
-    handleDisconnectWallet,
-    handleTriggerFindMatch,
     handleLogout,
   } = useAppState();
 
@@ -58,17 +55,19 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <Navbar
         user={user}
         onOpenWallet={() => setIsWalletModalOpen(true)}
-        onDisconnectWallet={handleDisconnectWallet}
+        onLogout={handleLogout}
       />
 
-      <div className="flex flex-1 w-full">
+      <div className="flex flex-1 w-full min-w-0">
         <Sidebar
           user={user}
           isOpenMobile={mobileSidebarOpen}
           setIsOpenMobile={setMobileSidebarOpen}
           onLogout={handleLogout}
         />
-        <main className="flex-1 p-4 sm:p-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 min-w-0 overflow-y-auto px-3 py-4 pb-24 sm:px-5 sm:py-5 sm:pb-8 lg:px-8 lg:py-8">
+          {children}
+        </main>
       </div>
 
       <footer className="border-t border-[#141C2F]/80 bg-[#050810] py-6 px-4 sm:px-8 text-xs text-gray-500">
@@ -123,7 +122,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         isOpen={isTxModalOpen}
         match={selectedTxMatch}
         onClose={() => setIsTxModalOpen(false)}
-        walletAddress={user.walletAddress || "0x0000...0000"}
       />
     </div>
   );

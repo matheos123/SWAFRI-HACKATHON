@@ -4,7 +4,7 @@ import Web3Providers from "./Web3Providers";
 
 export default function AuthCard() {
   return (
-    <div className="w-full rounded-xl border border-slate-800/80 bg-[#0d111a]/90 p-8 shadow-2xl backdrop-blur-md">
+    <div className="w-full rounded-xl border border-slate-800/80 bg-[#0d111a]/90 p-4 shadow-2xl backdrop-blur-md sm:p-6 lg:p-8">
       {/* Traditional Login Section */}
       <LoginForm />
 
@@ -22,7 +22,7 @@ export default function AuthCard() {
       <Web3Providers />
 
       {/* Bottom Footer Call to Action */}
-      <div className="mt-8 text-center text-xs text-slate-400">
+      <div className="mt-6 text-center text-xs text-slate-400 sm:mt-8">
         New combatant?{" "}
         <a
           href="/register"

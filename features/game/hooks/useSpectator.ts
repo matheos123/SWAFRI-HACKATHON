@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { getSocket } from "@/shared/lib/socket";
 import { useGameStore } from "../store/game.store";
 
@@ -12,17 +11,27 @@ export interface ActiveRoom {
   isRanked: boolean;
 }
 
+interface SpectateJoinedPayload {
+  roomId?: string;
+  matchId?: string;
+  isRanked?: boolean;
+  player1?: { userId: string; username: string };
+  player2?: { userId: string; username: string };
+  currentRound?: number;
+  player1Wins?: number;
+  player2Wins?: number;
+}
+
 export function useSpectator() {
   const [rooms, setRooms] = useState<ActiveRoom[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const { initSpectate } = useGameStore();
 
-  const fetchRooms = () => {
+  const fetchRooms = useCallback(() => {
     setIsLoading(true);
     const socket = getSocket();
     socket.emit("game:list_rooms");
-  };
+  }, []);
 
   useEffect(() => {
     const socket = getSocket();
@@ -32,7 +41,7 @@ export function useSpectator() {
       setIsLoading(false);
     });
 
-    socket.on("spectate:joined", (data: any) => {
+    socket.on("spectate:joined", (data: SpectateJoinedPayload) => {
       // Inline spectate initialization in game store
       if (data.roomId) {
         initSpectate({
@@ -52,7 +61,7 @@ export function useSpectator() {
       socket.off("game:rooms");
       socket.off("spectate:joined");
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initSpectate]);
 
   const joinAsSpectator = (roomId: string) => {
     const socket = getSocket();
