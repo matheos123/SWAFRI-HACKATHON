@@ -76,7 +76,7 @@ export const useSquadStore = create<SquadState>()(
               statusText: "Ready",
               status: "online" as const,
               rank: "ALLY",
-              role: m.role === "LEADER" ? "LEADER" : "OPERATIVE",
+              role: (m.role === "LEADER" ? "LEADER" : "OPERATIVE") as "LEADER" | "OPERATIVE",
               micMuted: false,
               avatarUrl: m.user.avatar ?? undefined,
             }));
@@ -167,7 +167,7 @@ export const useSquadStore = create<SquadState>()(
           };
         }),
 
-      updateSquadName: (name) =>
+      updateSquadName: async (name) =>
         set((state) => {
           if (!state.squad) return state;
           const normalizedName = name.trim().toUpperCase();
@@ -204,7 +204,7 @@ export const useSquadStore = create<SquadState>()(
           };
         }),
 
-      addMember: (member) =>
+      addMember: async (member) =>
         set((state) => {
           if (!state.squad) return state;
 
@@ -255,7 +255,7 @@ export const useSquadStore = create<SquadState>()(
           };
         }),
 
-      kickMember: (id) =>
+      kickMember: async (id) =>
         set((state) => {
           if (!state.squad) {
             return { squadMembers: state.squadMembers };
