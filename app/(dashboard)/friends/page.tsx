@@ -61,6 +61,10 @@ export default function FriendsPage() {
     loadFriends();
     loadRequests();
     loadOutgoingRequests();
+    // Use the new API-backed loadSquads from the store
+    if ((useSquadStore.getState() as any).loadSquads) {
+      (useSquadStore.getState() as any).loadSquads();
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAcceptInvite = (invite: GameInvite) => {

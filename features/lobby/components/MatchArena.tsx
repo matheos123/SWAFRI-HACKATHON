@@ -172,7 +172,7 @@ export default function MatchArena() {
         </div>
 
         <h1
-          className={`text-2xl font-black font-mono uppercase tracking-widest mb-6 ${
+          className={`text-2xl font-black font-mono uppercase tracking-widest mb-2 ${
             isDraw
               ? "text-amber-400"
               : (isSpectating 
@@ -182,8 +182,55 @@ export default function MatchArena() {
         >
           {isSpectating 
             ? (isDraw ? "Battle Drawn!" : `${player1Won ? player1?.username : player2?.username} Wins!`)
-            : (isDraw ? "Draw!" : iWon ? "Victory!" : "Defeat")}
+            : (isDraw ? "Draw!" : iWon ? "VICTORY!" : "DEFEAT")}
         </h1>
+
+        {/* Enhanced Match Result UI */}
+        {!isSpectating && iWon && (
+          <div className="mx-auto w-full max-w-sm mb-6 border border-slate-800 rounded-lg p-4 bg-slate-900/50">
+            {isRanked ? (
+              <div className="space-y-2 text-sm font-mono text-left">
+                <div className="flex justify-between text-slate-300">
+                  <span>Match Points:</span>
+                  <span className="text-emerald-400 font-bold">+10</span>
+                </div>
+                {/* Note: Badge bonus and total earned would be dynamic based on notification:live event in a full implementation */}
+                <div className="flex justify-between text-slate-300 border-b border-slate-800 pb-2">
+                  <span>Total Earned:</span>
+                  <span className="text-emerald-400 font-bold">+10</span>
+                </div>
+                <div className="flex justify-between text-slate-400 pt-2 text-xs">
+                  <span>New Balance:</span>
+                  <span>{user?.points ? user.points + 10 : 10} pts</span>
+                </div>
+                <div className="flex justify-between text-slate-400 text-xs">
+                  <span>Current Streak:</span>
+                  <span className="text-cyan-400">{user?.currentStreak ? user.currentStreak + 1 : 1} wins</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm font-mono text-center">
+                <div className="text-amber-400 flex items-center justify-center gap-2 font-bold mb-2">
+                  <span>⚠️</span> Unranked Match
+                </div>
+                <div className="text-slate-400 text-xs text-left space-y-1">
+                  <p>Connect your wallet to:</p>
+                  <ul className="list-disc list-inside pl-2">
+                    <li>Save your progress</li>
+                    <li>Earn points & badges</li>
+                    <li>Appear on leaderboard</li>
+                  </ul>
+                </div>
+                <button
+                  className="mt-4 w-full rounded bg-indigo-500/20 border border-indigo-500/50 py-2 text-indigo-300 hover:bg-indigo-500/30 transition-colors uppercase tracking-widest text-xs font-bold"
+                  onClick={() => alert("Wallet connect modal would open here")}
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Score */}
         <div className="flex justify-center gap-12 mb-6 select-none">

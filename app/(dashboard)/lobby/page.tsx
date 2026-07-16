@@ -96,6 +96,8 @@ function SpectatorPanel() {
   );
 }
 
+import SquadChat from "@/features/chat/components/SquadChat";
+
 export default function LobbyPage() {
   return (
     <div className="w-full grid grid-cols-1 gap-4 items-start lg:gap-5 2xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
@@ -112,6 +114,12 @@ export default function LobbyPage() {
       <div className="space-y-4 lg:space-y-5 flex flex-col">
         {/* <PlayerStatsPanel /> */}
         <SpectatorPanel />
+        
+        {/* Add the new Squad Chat above global chat */}
+        <div className="h-64">
+          <SquadChat />
+        </div>
+
         <LiveChatPanel />
       </div>
     </div>
