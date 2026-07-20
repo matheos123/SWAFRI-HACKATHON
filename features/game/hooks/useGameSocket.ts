@@ -74,5 +74,14 @@ export function useGameSocket(roomId: string) {
     getSocket().emit("game:rematch", { roomId });
   };
 
-  return { submitMove, requestRematch };
+  const sendSpectatorReaction = (emoji: string) => {
+    if (!roomId || !user) return;
+    getSocket().emit("spectate:reaction", {
+      roomId,
+      emoji,
+      username: user.username,
+    });
+  };
+
+  return { submitMove, requestRematch, sendSpectatorReaction };
 }

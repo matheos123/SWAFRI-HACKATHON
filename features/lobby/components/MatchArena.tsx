@@ -12,6 +12,10 @@ import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
 import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
 import { useSquadStore } from "@/features/friends/store/squad.store";
 import { useAppState } from "@/shared/context/AppStateContext";
+import {
+  FloatingReactionsOverlay,
+  SpectatorEmojiBar,
+} from "@/features/game/components/FloatingReactions";
 // Timer hooks
 
 function useRoundTimer(active: boolean, seconds = 30) {
@@ -129,7 +133,7 @@ export default function MatchArena() {
 
   const { matchData, resetMatchmaking } = useSocketStore();
   const { isQueued, queuePosition, joinQueue, cancelQueue } = useMatchmaking();
-  const { submitMove, requestRematch } = useGameSocket(roomId ?? "");
+  const { submitMove, requestRematch, sendSpectatorReaction } = useGameSocket(roomId ?? "");
 
   const timeLeft = useRoundTimer(phase === "selecting" && !isSpectating, 30);
   const queueTimer = useQueueTimer(isQueued);
@@ -354,6 +358,9 @@ export default function MatchArena() {
         )}
       </AnimatePresence>
 
+      {/* Spectator Floating Emoji Overlay (FR-4.1.2) */}
+      <FloatingReactionsOverlay roomId={roomId ?? undefined} />
+
       <h2 className="mb-5 flex flex-wrap items-center justify-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400 font-mono sm:mb-6 sm:text-xs sm:tracking-[0.3em]">
         {isSpectating ? (
           <>
@@ -528,6 +535,9 @@ export default function MatchArena() {
           </p>
         </div>
       )}
+      {/* Spectator Reactions Bar */}
+      <SpectatorEmojiBar onSendEmoji={sendSpectatorReaction} />
+
       {/* Chat Sidebar - Only if user has a squad */}
       <div className="mt-5 sm:mt-6">
         {squad ? (
