@@ -20,7 +20,10 @@ interface LiveNotificationPayload {
     friendshipId?: string;
     requesterId?: string;
     senderId?: string;
+    fromUserId?: string;
     username?: string;
+    fromUsername?: string;
+    inviterUsername?: string;
     avatar?: string | null;
     roomId?: string;
     matchId?: string;
@@ -89,6 +92,20 @@ export function useSocket() {
       },
     );
 
+    // Private friend game match listener
+    socket.on(
+      "game:matched",
+      (data: {
+        roomId: string;
+        matchId: string;
+        isRanked: boolean;
+        opponent: { userId: string; username: string };
+      }) => {
+        setMatchmakingStatus("matched");
+        setMatchData(data);
+      },
+    );
+
     socket.on("chat:message", (msg: { roomId?: string; content: string }) => {
       const { squad } = useSquadStore.getState();
       if (squad && msg.roomId === getSquadRoomId(squad.name) && msg.content?.startsWith("SYSTEM:MATCH_START:")) {
@@ -144,13 +161,13 @@ export function useSocket() {
 
         if (data.type === "game_invite" && data.data) {
           addGameInvite({
-            id: data.data.matchId ?? data.data.roomId ?? String(Date.now()),
-            senderId: data.data.senderId ?? data.data.inviterId ?? "Unknown",
-            username: data.data.username ?? "Unknown",
+            id: data.data.id ?? data.data.matchId ?? String(Date.now()),
+            senderId: data.data.fromUserId ?? data.data.senderId ?? data.data.inviterId ?? "Unknown",
+            username: data.data.fromUsername ?? data.data.username ?? data.data.inviterUsername ?? "Friend",
             avatar: data.data.avatar ?? null,
-            roomId: data.data.roomId ?? data.data.matchId ?? String(Date.now()),
-            matchId: data.data.matchId ?? data.data.roomId ?? String(Date.now()),
-            isRanked: data.data.isRanked,
+            roomId: data.data.roomId ?? "",
+            matchId: data.data.matchId ?? "",
+            isRanked: data.data.isRanked ?? false,
           });
         }
 

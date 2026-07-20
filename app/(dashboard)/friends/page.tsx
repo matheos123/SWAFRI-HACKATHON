@@ -10,6 +10,7 @@ import {
   UserPlus,
   Clock,
   Shield,
+  Swords,
 } from "lucide-react";
 import { useFriendsStore } from "@/features/friends/store/friends.store";
 import type { GameInvite } from "@/features/friends/store/friends.store";
@@ -34,6 +35,7 @@ export default function FriendsPage() {
     blockRequest,
     removeFriend,
     declineGameInvite,
+    sendGameChallenge,
     loadOutgoingRequests,
     outgoingRequests,
   } = useFriendsStore();
@@ -56,6 +58,8 @@ export default function FriendsPage() {
   const [activeTab, setActiveTab] = useState<"friends" | "requests" | "squad">(
     "squad",
   );
+  const [challengingId, setChallengingId] = useState<string | null>(null);
+  const [challengeMessage, setChallengeMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadFriends();
@@ -66,6 +70,21 @@ export default function FriendsPage() {
       (useSquadStore.getState() as any).loadSquads();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSendChallenge = async (friendId: string, username: string) => {
+    setChallengingId(friendId);
+    setChallengeMessage(null);
+    try {
+      await sendGameChallenge(friendId);
+      setChallengeMessage(`⚔️ Match invitation sent to ${username}!`);
+      setTimeout(() => setChallengeMessage(null), 4000);
+    } catch (err: any) {
+      setChallengeMessage(`Failed to send challenge: ${err?.message || "Friend is offline"}`);
+      setTimeout(() => setChallengeMessage(null), 4000);
+    } finally {
+      setChallengingId(null);
+    }
+  };
 
   const handleAcceptInvite = (invite: GameInvite) => {
     setMatchData({
@@ -153,6 +172,19 @@ export default function FriendsPage() {
           Copy
         </button>
       </div>
+
+      {/* Challenge Toast Banner */}
+      {challengeMessage && (
+        <div className="rounded-xl border border-cyan-500/40 bg-cyan-950/20 px-4 py-3 text-xs font-mono text-cyan-300 flex items-center justify-between shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+          <span>{challengeMessage}</span>
+          <button
+            onClick={() => setChallengeMessage(null)}
+            className="text-cyan-500 hover:text-cyan-300 ml-2"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex bg-[#111A2E] p-1 rounded-lg border border-gray-800 w-fit">
@@ -266,13 +298,28 @@ export default function FriendsPage() {
                           </p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeFriend(f.friendId)}
-                        className="p-2 rounded-xl border border-rose-500/20 text-rose-400 hover:bg-rose-950/20 hover:border-rose-500/40 transition-colors"
-                        title="Remove friend"
-                      >
-                        <UserMinus className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleSendChallenge(f.friendId, f.username)}
+                          disabled={challengingId === f.friendId}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/20 text-cyan-300 hover:bg-cyan-900/40 hover:border-cyan-500/50 transition-colors text-xs font-mono font-bold uppercase tracking-wider disabled:opacity-50"
+                          title="Challenge friend to a Rock Paper Scissors match"
+                        >
+                          {challengingId === f.friendId ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Swords className="w-3.5 h-3.5 text-cyan-400" />
+                          )}
+                          <span>Challenge</span>
+                        </button>
+                        <button
+                          onClick={() => removeFriend(f.friendId)}
+                          className="p-2 rounded-xl border border-rose-500/20 text-rose-400 hover:bg-rose-950/20 hover:border-rose-500/40 transition-colors"
+                          title="Remove friend"
+                        >
+                          <UserMinus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </div>

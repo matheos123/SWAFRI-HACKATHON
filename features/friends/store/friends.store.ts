@@ -7,6 +7,7 @@ import {
   Friendship,
   FriendRequest,
   getOutgoingFriendRequests,
+  inviteFriendToGame,
 } from "../api/friends.api";
 
 export interface GameInvite {
@@ -37,6 +38,7 @@ interface FriendsState {
   addIncomingRequest: (request: FriendRequest) => void; // called from socket
   addGameInvite: (invite: GameInvite) => void;
   declineGameInvite: (inviteId: string) => void;
+  sendGameChallenge: (friendId: string) => Promise<void>;
 }
 
 export const useFriendsStore = create<FriendsState>((set, get) => ({
@@ -105,6 +107,9 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
     set((s) => ({
       gameInvites: s.gameInvites.filter((i) => i.id !== inviteId),
     }));
+  },
+  sendGameChallenge: async (friendId: string) => {
+    await inviteFriendToGame(friendId);
   },
   loadOutgoingRequests: async () => {
     try {

@@ -5,6 +5,7 @@ import Navbar from "@/shared/components/Navbar";
 import Sidebar from "@/shared/components/Sidebar";
 import TxModal from "@/shared/components/TXModal";
 import WalletModal from "@/shared/components/WalletModal";
+import GameInviteModal from "@/features/friends/components/GameInviteModal";
 import { useAppState } from "@/shared/context/AppStateContext";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useSocket } from "@/shared/hooks/useSocket";
@@ -123,6 +124,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         match={selectedTxMatch}
         onClose={() => setIsTxModalOpen(false)}
       />
+      <GameInviteModal />
     </div>
   );
 }

@@ -151,3 +151,9 @@ export async function getOutgoingFriendRequests(): Promise<FriendRequest[]> {
     status: req.status,
   }));
 }
+
+/** POST /friends/:friendId/invite — send game challenge to an online friend */
+export async function inviteFriendToGame(friendId: string): Promise<void> {
+  await apiClient.post(`/friends/${friendId}/invite`);
+}
+

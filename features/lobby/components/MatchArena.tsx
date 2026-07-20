@@ -54,6 +54,53 @@ function useQueueTimer(active: boolean) {
   return format(elapsed);
 }
 
+function PreMatchCountdown({ onComplete }: { onComplete: () => void }) {
+  const [step, setStep] = useState<number>(3);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStep((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTimeout(onComplete, 900);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 900);
+
+    return () => clearInterval(timer);
+  }, [onComplete]);
+
+  return (
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#070A13]/90 backdrop-blur-md">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ scale: 0.3, opacity: 0, rotate: -10 }}
+          animate={{ scale: 1.2, opacity: 1, rotate: 0 }}
+          exit={{ scale: 2.2, opacity: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="text-center select-none"
+        >
+          {step > 0 ? (
+            <div className="text-8xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-linear-to-r from-cyan-400 via-indigo-400 to-cyan-300 drop-shadow-[0_0_40px_rgba(6,182,212,0.6)]">
+              {step}
+            </div>
+          ) : (
+            <div className="text-6xl sm:text-7xl font-black font-mono uppercase tracking-widest text-transparent bg-clip-text bg-linear-to-r from-rose-500 via-amber-400 to-rose-500 drop-shadow-[0_0_50px_rgba(244,63,94,0.8)] animate-bounce">
+              ⚔️ FIGHT!
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+      <p className="mt-8 text-xs font-mono uppercase tracking-[0.3em] text-cyan-400/80 animate-pulse font-bold">
+        PREPARING COMBAT ARENA...
+      </p>
+    </div>
+  );
+}
+
 export default function MatchArena() {
   const { user } = useAuthStore();
   const { squad } = useSquadStore();   // For squad check
@@ -86,10 +133,12 @@ export default function MatchArena() {
 
   const timeLeft = useRoundTimer(phase === "selecting" && !isSpectating, 30);
   const queueTimer = useQueueTimer(isQueued);
+  const [showCountdown, setShowCountdown] = useState(false);
 
   useEffect(() => {
     if (matchData && matchData.matchId !== matchId) {
       initGame(matchData);
+      setShowCountdown(true);
     }
   }, [initGame, matchData, matchId]);
 
@@ -295,8 +344,15 @@ export default function MatchArena() {
 
   // ── Active Combat Arena Screen ──
   return (
-      <div className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl sm:p-5 lg:p-6">
+    <div className="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-[#0d111a]/80 p-4 shadow-xl sm:p-5 lg:p-6">
       <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+      {/* Pre-Match Countdown Overlay (FR-2.2.1) */}
+      <AnimatePresence>
+        {showCountdown && (
+          <PreMatchCountdown onComplete={() => setShowCountdown(false)} />
+        )}
+      </AnimatePresence>
 
       <h2 className="mb-5 flex flex-wrap items-center justify-center gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400 font-mono sm:mb-6 sm:text-xs sm:tracking-[0.3em]">
         {isSpectating ? (
