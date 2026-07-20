@@ -26,7 +26,7 @@ export default function Web3Providers() {
       {/* Error banner */}
       {error && (
         <div className="rounded-lg border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-[11px] text-rose-400 font-mono flex items-center justify-between">
-          <span>{error}</span>
+          <span>{String(error)}</span>
           <button
             onClick={clearError}
             className="ml-2 text-rose-500 hover:text-rose-300 text-xs"
@@ -36,7 +36,7 @@ export default function Web3Providers() {
         </div>
       )}
 
-      {/* ── CONNECTED STATE ──────────────────────────────────────────────── */}
+      {/* CONNECTED STATE  */}
       {isConnected && address ? (
         <div className="space-y-2">
           {/* Connected address pill */}
@@ -104,7 +104,7 @@ export default function Web3Providers() {
           </button>
         </div>
       ) : (
-        /* ── NOT CONNECTED STATE ────────────────────────────────────────── */
+        /*  NOT CONNECTED STATE  */
         <div className="space-y-2">
           {/* MetaMask / primary wallet */}
           <button

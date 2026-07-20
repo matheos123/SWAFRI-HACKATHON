@@ -1,30 +1,17 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+
+import React, { createContext, useContext, useState } from "react";
 import { Match, Badge, LeaderboardEntry } from "@/shared/types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { initialBadges, initialMatches, leaderboardData } from "@/constants";
 
-// Helpers 
-
-function getStorageItem<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  const item = localStorage.getItem(key);
-  if (!item) return fallback;
-  try {
-    return JSON.parse(item) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-//  Context shape 
+// Context shape
 
 interface AppStateContextValue {
   // UI navigation state
   mobileSidebarOpen: boolean;
   setMobileSidebarOpen: (open: boolean) => void;
 
-  // Game data (mock until backend endpoints are added)
+  // Game data state (live data managed by features)
   badges: Badge[];
   matches: Match[];
   leaderboard: LeaderboardEntry[];
@@ -50,33 +37,22 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | null>(null);
 
-//  Provider 
+// Provider
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Mock game data — will be replaced when match/badge/leaderboard endpoints are integrated
-  const [badges] = useState<Badge[]>(() =>
-    getStorageItem("rps_arena_badges", initialBadges),
-  );
-  const [matches, setMatches] = useState<Match[]>(() =>
-    getStorageItem("rps_arena_matches", initialMatches),
-  );
-  const [leaderboard] = useState<LeaderboardEntry[]>(() =>
-    getStorageItem("rps_arena_leaderboard", leaderboardData),
-  );
+  // Live game data — features handle their own real API queries via React Query
+  const [badges] = useState<Badge[]>([]);
+  const [matches] = useState<Match[]>([]);
+  const [leaderboard] = useState<LeaderboardEntry[]>([]);
 
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [selectedTxMatch, setSelectedTxMatch] = useState<Match | null>(null);
   const [isQueueActive, setIsQueueActive] = useState(false);
 
-  // Persist matches locally until backend match history is integrated
-  useEffect(() => {
-    localStorage.setItem("rps_arena_matches", JSON.stringify(matches));
-  }, [matches]);
-
-  //  Handlers 
+  // Handlers
 
   const handleOpenTxDetail = (match: Match) => {
     setSelectedTxMatch(match);
@@ -87,7 +63,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     setIsQueueActive(true);
   };
 
-  // Wallet handlers — WalletModal handles connect/disconnect UI
   const handleConnectWallet = () => {
     setIsWalletModalOpen(true);
   };
@@ -131,7 +106,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     </AppStateContext.Provider>
   );
 }
-
 
 export function useAppState(): AppStateContextValue {
   const ctx = useContext(AppStateContext);

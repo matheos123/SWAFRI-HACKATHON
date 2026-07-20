@@ -11,6 +11,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useMatchmaking } from "@/features/game/hooks/useMatchmaking";
 import LiveChatPanel from "@/features/leaderboard/LiveChatPanel";
 import { useSquadStore } from "@/features/friends/store/squad.store";
+import { useAppState } from "@/shared/context/AppStateContext";
 // Timer hooks
 
 function useRoundTimer(active: boolean, seconds = 30) {
@@ -56,6 +57,7 @@ function useQueueTimer(active: boolean) {
 export default function MatchArena() {
   const { user } = useAuthStore();
   const { squad } = useSquadStore();   // For squad check
+  const { setIsWalletModalOpen } = useAppState();
 
   const {
     roomId,
@@ -223,7 +225,7 @@ export default function MatchArena() {
                 </div>
                 <button
                   className="mt-4 w-full rounded bg-indigo-500/20 border border-indigo-500/50 py-2 text-indigo-300 hover:bg-indigo-500/30 transition-colors uppercase tracking-widest text-xs font-bold"
-                  onClick={() => alert("Wallet connect modal would open here")}
+                  onClick={() => setIsWalletModalOpen(true)}
                 >
                   Connect Wallet
                 </button>

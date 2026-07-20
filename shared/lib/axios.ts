@@ -19,12 +19,24 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const body = error.response?.data;
-    const message =
-      body?.message?.message ||
-      (Array.isArray(body?.message) ? body.message[0] : body?.message) ||
-      body?.error ||
-      error.message ||
-      "Something went wrong";
+    let message = "Something went wrong";
+    
+    if (body) {
+      if (typeof body.message === "string") {
+        message = body.message;
+      } else if (Array.isArray(body.message)) {
+        message = body.message[0];
+      } else if (body.message && typeof body.message === "object") {
+        message = body.message.message || body.message.error || JSON.stringify(body.message);
+      } else if (body.error && typeof body.error === "string") {
+        message = body.error;
+      } else if (body.error && typeof body.error === "object") {
+        message = body.error.message || body.error.error || JSON.stringify(body.error);
+      }
+    } else if (error.message) {
+      message = error.message;
+    }
+    
     return Promise.reject(new Error(message));
   },
 );

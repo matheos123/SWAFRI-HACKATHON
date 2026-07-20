@@ -68,9 +68,20 @@ export function useSiweLogin() {
       setUser(user);
       await loadProfile();
     } catch (err: any) {
-      const msg = err?.message || "Wallet login failed.";
+      let msg = "Wallet login failed.";
+      if (typeof err === "string") {
+        msg = err;
+      } else if (typeof err?.message === "string") {
+        msg = err.message;
+      } else if (err?.message && typeof err.message === "object") {
+        msg = err.message.message || err.message.error || JSON.stringify(err.message);
+      } else if (err?.shortMessage && typeof err.shortMessage === "string") {
+        msg = err.shortMessage;
+      } else if (err && typeof err === "object") {
+        msg = err.error || String(err);
+      }
       setError(msg);
-      console.error(err);
+      console.error("SIWE login error:", err);
     } finally {
       inFlightRef.current = false;
       setIsLoading(false);
