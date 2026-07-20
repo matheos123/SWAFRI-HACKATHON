@@ -85,13 +85,54 @@ export default function SettingsView({
             />
           </div>
 
-          {/* Avatar URL */}
-          <div className="flex flex-col gap-2">
+          {/* Avatar Selection & URL */}
+          <div className="flex flex-col gap-3">
             <label className="text-gray-400 font-mono uppercase tracking-wider font-bold">
-              Avatar URL
+              Choose Avatar
             </label>
-            <div className="flex items-center gap-3">
-              {/* Preview */}
+
+            {/* Preset Avatar Grid */}
+            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
+              {[
+                { name: "Cyber Samurai", url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=150&auto=format&fit=crop&q=80" },
+                { name: "Void Valkyrie", url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150&auto=format&fit=crop&q=80" },
+                { name: "Mecha Pilot", url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80" },
+                { name: "Neon Ninja", url: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=150&auto=format&fit=crop&q=80" },
+                { name: "Astral Sentinel", url: "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=150&auto=format&fit=crop&q=80" },
+                { name: "Quantum Mage", url: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=150&auto=format&fit=crop&q=80" },
+                { name: "Sol Warrior", url: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=150&auto=format&fit=crop&q=80" },
+                { name: "Cyber Punk", url: "https://images.unsplash.com/photo-1563089145-599997674d42?w=150&auto=format&fit=crop&q=80" },
+              ].map((preset) => {
+                const isSelected = avatarUrl === preset.url;
+                return (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setAvatarUrl(preset.url)}
+                    className={`relative aspect-square overflow-hidden rounded-xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-cyan-400 ring-2 ring-cyan-500/50 scale-105 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                        : "border-slate-800 opacity-70 hover:opacity-100 hover:border-slate-600"
+                    }`}
+                    title={preset.name}
+                  >
+                    <img
+                      src={preset.url}
+                      alt={preset.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {isSelected && (
+                      <div className="absolute inset-0 bg-cyan-500/20 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-cyan-300 drop-shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Custom URL Input & Active Preview */}
+            <div className="mt-2 flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl border border-gray-800 bg-slate-900/60 overflow-hidden flex items-center justify-center shrink-0">
                 {avatarUrl ? (
                   <img
@@ -113,8 +154,17 @@ export default function SettingsView({
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 className="flex-1 h-11 px-4 rounded-xl border border-gray-800 bg-[#070A12]/80 font-semibold text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
-                placeholder="https://cdn.example.com/avatar.png"
+                placeholder="Or paste custom image URL (https://...)"
               />
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => setAvatarUrl("")}
+                  className="px-3 h-11 rounded-xl border border-gray-800 text-gray-400 hover:text-rose-400 hover:border-rose-500/30 text-xs font-mono transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 

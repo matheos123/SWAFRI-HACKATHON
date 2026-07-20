@@ -46,8 +46,18 @@ export function useSocket() {
     connectSocket();
 
     // ── Connection
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      setConnected(true);
+      if (user?.id) {
+        socket.emit("game:reconnect", { userId: user.id });
+      }
+    });
     socket.on("disconnect", () => setConnected(false));
+
+    // Attempt reconnect on mount if socket is already connected
+    if (socket.connected && user?.id) {
+      socket.emit("game:reconnect", { userId: user.id });
+    }
 
     socket.on("leaderboard:update", (payload: LeaderboardPlayer[] | { data: LeaderboardPlayer[] }) => {
       const leaderboard = Array.isArray(payload) ? payload : payload.data;
@@ -95,6 +105,20 @@ export function useSocket() {
     // Private friend game match listener
     socket.on(
       "game:matched",
+      (data: {
+        roomId: string;
+        matchId: string;
+        isRanked: boolean;
+        opponent: { userId: string; username: string };
+      }) => {
+        setMatchmakingStatus("matched");
+        setMatchData(data);
+      },
+    );
+
+    // Mid-match auto-reconnect listener (FR-2.2.4)
+    socket.on(
+      "game:reconnected",
       (data: {
         roomId: string;
         matchId: string;
